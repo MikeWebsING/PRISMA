@@ -8,6 +8,8 @@ public class Token {
     }
 
     public String toString() {
-        return "" + (char) etiqueta;
+        if (etiqueta < 256)
+            return "" + (char) etiqueta;
+        return "Token[" + etiqueta + "]";
     }
 }

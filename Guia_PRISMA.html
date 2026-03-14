@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISMA | Documentación Oficial del Lenguaje</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.4);
+            --secondary: #f472b6;
+            --accent: #22d3ee;
+            --bg: #030712;
+            --card-bg: #111827;
+            --card-hover: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.1);
+            --code-bg: #000000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        header {
+            min-height: 80vh;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(129, 140, 248, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(34, 211, 238, 0.1), transparent 40%),
+                url('prisma_hero_abstract_banner.png') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, var(--bg));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: clamp(4rem, 10vw, 7rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-fill-color: transparent;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -3px;
+            filter: drop-shadow(0 0 30px var(--primary-glow));
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(129, 140, 248, 0.2);
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid var(--primary);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Navigation */
+        .glass-nav {
+            position: sticky;
+            top: 2rem;
+            z-index: 1000;
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(15px);
+            margin: -3rem auto 3rem;
+            width: fit-content;
+            padding: 0.6rem 1.5rem;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            padding: 0.4rem 1rem;
+            border-radius: 99px;
+        }
+
+        .glass-nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 8rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h2 span {
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+
+        /* Cards & Components */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            background: var(--card-hover);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .token-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .token {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .token:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Alphabet Grid */
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 1rem;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 2.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .char-box {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .char-box small {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .char-box:hover {
+            background: var(--primary);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Examples / Code Blocks */
+        .example-browser {
+            background: var(--code-bg);
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.8);
+        }
+
+        .browser-header {
+            background: #1f2937;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ef4444;
+        }
+
+        .yellow {
+            background: #f59e0b;
+        }
+
+        .green {
+            background: #10b981;
+        }
+
+        .code-title {
+            margin-left: 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        pre {
+            padding: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            overflow-x: auto;
+            line-height: 1.8;
+        }
+
+        .k {
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        /* Keyword */
+        .t {
+            color: var(--accent);
+        }
+
+        /* Type */
+        .s {
+            color: #10b981;
+        }
+
+        /* String */
+        .n {
+            color: #f59e0b;
+        }
+
+        /* Number */
+        .o {
+            color: var(--primary);
+        }
+
+        /* Operator */
+        .c {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Comment */
+
+        /* Comparison Table */
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            overflow: hidden;
+        }
+
+        .specs-table th,
+        .specs-table td {
+            text-align: left;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .specs-table th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .glass-nav {
+                width: calc(100% - 2rem);
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+
+            header {
+                min-height: 60vh;
+            }
+
+            h1 {
+                font-size: 3.5rem;
+            }
+        }
+
+        footer {
+            padding: 6rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: linear-gradient(to bottom, transparent, rgba(129, 140, 248, 0.05));
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="hero-content">
+            <span class="hero-badge">Versión 1.0 Stable</span>
+            <h1>PRISMA</h1>
+            <p class="subtitle" style="margin: 0 auto 3rem;">Un lenguaje diseñado para la claridad, la potencia y el
+                orden. Explora la sintaxis que define el futuro de tu desarrollo.</p>
+        </div>
+    </header>
+
+    <nav class="glass-nav">
+        <a href="#intro">Inicio</a>
+        <a href="#alfabeto">Alfabeto</a>
+        <a href="#reservadas">Reservadas</a>
+        <a href="#logica">Lógica</a>
+        <a href="#ejemplos">Casos</a>
+    </nav>
+
+    <div class="container">
+
+        <section id="intro">
+            <div class="section-header">
+                <h2><span>01.</span> Filosofía PRISMA</h2>
+                <p>PRISMA es un lenguaje de programación estructurado que prioriza la legibilidad. Su estructura de
+                    módulos facilita la organización de proyectos complejos, separando claramente las definiciones
+                    globales de la lógica principal.</p>
+            </div>
+            <div class="grid-cards">
+                <div class="card">
+                    <h3>Modularidad</h3>
+                    <p>Todo el código vive dentro de un <code>MODULO</code>. Esto previene conflictos de nombres y
+                        permite una escalabilidad limpia.</p>
+                </div>
+                <div class="card">
+                    <h3>Tipado Fuerte</h3>
+                    <p>Desde <code>ENTERO</code> hasta <code>BOOLEANO</code>, los tipos están claramente definidos para
+                        evitar errores comunes durante la ejecución.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="alfabeto">
+            <div class="section-header">
+                <h2><span>02.</span> Alfabeto del Sistema (Σ)</h2>
+                <p>El conjunto de caracteres permitidos por el analizador léxico. Cualquier carácter fuera de este rango
+                    lanzará un error de sintaxis.</p>
+            </div>
+            <div class="alphabet-grid">
+                <div class="char-box">A-Z<small>Letras</small></div>
+                <div class="char-box">0-9<small>Dígitos</small></div>
+                <div class="char-box">+<small>Suma</small></div>
+                <div class="char-box">-<small>Resta</small></div>
+                <div class="char-box">*<small>Mult</small></div>
+                <div class="char-box">/<small>Div</small></div>
+                <div class="char-box">%<small>MOD</small></div>
+                <div class="char-box">=<small>Asign</small></div>
+                <div class="char-box">==<small>Igual</small></div>
+                <div class="char-box">!=<small>Dif</small></div>
+                <div class="char-box">&gt;<small>May</small></div>
+                <div class="char-box">&lt;<small>Men</small></div>
+                <div class="char-box">!<small>Not</small></div>
+                <div class="char-box">( )<small>Agrup</small></div>
+                <div class="char-box">,<small>Sep</small></div>
+                <div class="char-box">"<small>Text</small></div>
+                <div class="char-box">_<small>ID</small></div>
+            </div>
+        </section>
+
+        <section id="reservadas">
+            <div class="section-header">
+                <h2><span>03.</span> Diccionario de Palabras</h2>
+                <p>Palabras con propósitos especiales que el compilador reconoce para dirigir el flujo del programa.</p>
+            </div>
+            <div class="grid-cards">
+                <div class="card">
+                    <h3>Estructura Lógica</h3>
+                    <div class="token-group">
+                        <span class="token">MODULO</span>
+                        <span class="token">FIN-MODULO</span>
+                        <span class="token">PRINCIPAL</span>
+                        <span class="token">FIN-PRINCIPAL</span>
+                        <span class="token">VARIABLES</span>
+                        <span class="token">FIN-VARIABLES</span>
+                        <span class="token">ENTONCES</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Tipos de Datos</h3>
+                    <div class="token-group">
+                        <span class="token">ENTERO</span>
+                        <span class="token">DECIMAL</span>
+                        <span class="token">TEXTO</span>
+                        <span class="token">BOOLEANO</span>
+                        <span class="token">VACIO</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Funciones y Saltos</h3>
+                    <div class="token-group">
+                        <span class="token">FUNCION</span>
+                        <span class="token">FIN-FUNCION</span>
+                        <span class="token">RETORNA</span>
+                        <span class="token">V</span>
+                        <span class="token">F</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>E/S de Datos</h3>
+                    <div class="token-group">
+                        <span class="token">IMPRIME</span>
+                        <span class="token">LEER</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="logica">
+            <div class="section-header">
+                <h2><span>04.</span> Operadores y Lógica</h2>
+                <p>Las herramientas para manipular datos y comparar resultados dentro de expresiones.</p>
+            </div>
+            <table class="specs-table">
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Operadores</th>
+                        <th>Funcionalidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Comparación Relacional</td>
+                        <td><code>==, !=, >, <, >=, <=</code></td>
+                        <td>Devuelven un valor BOOLEANO (V o F).</td>
+                    </tr>
+                    <tr>
+                        <td>Operaciones Lógicas</td>
+                        <td><code>Y, O, NO</code></td>
+                        <td>AND, OR y NOT respectivamente.</td>
+                    </tr>
+                    <tr>
+                        <td>Ciclos y Selección</td>
+                        <td><code>SI, PARA, MIENTRAS</code></td>
+                        <td>Estructuras de decisión y bucles contados o condicionales.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="ejemplos">
+            <div class="section-header">
+                <h2><span>05.</span> Galería de Ejemplos</h2>
+                <p>Explora la versatilidad de PRISMA a través de estos 10 casos prácticos que cubren desde conceptos
+                    básicos hasta lógica avanzada.</p>
+            </div>
+
+            <div class="grid-cards" style="grid-template-columns: 1fr; gap: 4rem;">
+
+                <!-- Ejemplo 1: Hola Mundo -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">01_hola_mundo.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> HolaMundo
+    <span class="k">PRINCIPAL</span>
+        <span class="k">IMPRIME</span>(<span class="s">"¡Bienvenido al lenguaje PRISMA!"</span>)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 2: Declaración de Variables -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">02_tipos_datos.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> TiposDatos
+    <span class="k">VARIABLES</span>
+        <span class="t">ENTERO</span> edad = <span class="n">25</span>
+        <span class="t">DECIMAL</span> pi = <span class="n">3.1416</span>
+        <span class="t">TEXTO</span> ciudad = <span class="s">"Ocotlán"</span>
+        <span class="t">BOOLEANO</span> es_estudiante = <span class="k">V</span>
+    <span class="k">FIN-VARIABLES</span>
+    <span class="k">PRINCIPAL</span>
+        <span class="k">IMPRIME</span>(ciudad)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 3: Operaciones Aritméticas -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">03_calculadora_basica.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Calculadora
+    <span class="k">VARIABLES</span>
+        <span class="t">ENTERO</span> a = <span class="n">15</span>
+        <span class="t">ENTERO</span> b = <span class="n">4</span>
+        <span class="t">ENTERO</span> resultado = <span class="n">0</span>
+    <span class="k">FIN-VARIABLES</span>
+    <span class="k">PRINCIPAL</span>
+        resultado = a + b <span class="c">// Suma</span>
+        resultado = a % b <span class="c">// Módulo (Residuos)</span>
+        <span class="k">IMPRIME</span>(resultado)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 4: Condicional SI-SINO -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">04_verificar_edad.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Acceso
+    <span class="k">PRINCIPAL</span>
+        <span class="t">ENTERO</span> edad = <span class="n">0</span>
+        <span class="k">LEER</span>(edad)
+        <span class="k">SI</span> (edad >= <span class="n">18</span>) <span class="k">ENTONCES</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Acceso Concedido"</span>)
+        <span class="k">SINO</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Acceso Denegado"</span>)
+        <span class="k">FIN-SI</span>
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 5: Bucle PARA -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">05_tabla_multiplicar.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Tablas
+    <span class="k">PRINCIPAL</span>
+        <span class="t">ENTERO</span> i = <span class="n">0</span>
+        <span class="t">ENTERO</span> tabla = <span class="n">5</span>
+        <span class="k">PARA</span> (i = <span class="n">1</span> , i <= <span class="n">10</span> , i = i + <span class="n">1</span>)
+            <span class="k">IMPRIME</span>(tabla * i)
+        <span class="k">FIN-PARA</span>
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 6: Bucle MIENTRAS -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">06_conteo_regresivo.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Cohete
+    <span class="k">PRINCIPAL</span>
+        <span class="t">ENTERO</span> cuenta = <span class="n">10</span>
+        <span class="k">MIENTRAS</span> (cuenta > <span class="n">0</span>)
+            <span class="k">IMPRIME</span>(cuenta)
+            cuenta = cuenta - <span class="n">1</span>
+        <span class="k">FIN-MIENTRAS</span>
+        <span class="k">IMPRIME</span>(<span class="s">"¡Despegue!"</span>)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 7: Funciones con Retorno -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">07_area_triangulo.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Geometria
+    <span class="k">FUNCION</span> <span class="t">DECIMAL</span> CalcularArea(<span class="t">DECIMAL</span> base, <span class="t">DECIMAL</span> altura)
+        <span class="t">DECIMAL</span> area = (base * altura) / <span class="n">2.0</span>
+        <span class="k">RETORNA</span> area
+    <span class="k">FIN-FUNCION</span>
+
+    <span class="k">PRINCIPAL</span>
+        <span class="t">DECIMAL</span> result = CalcularArea(<span class="n">10.5</span>, <span class="n">5.0</span>)
+        <span class="k">IMPRIME</span>(result)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 8: Lógica Booleana -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">08_sistema_seguridad.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Seguridad
+    <span class="k">VARIABLES</span>
+        <span class="t">BOOLEANO</span> tiene_llave = <span class="k">V</span>
+        <span class="t">BOOLEANO</span> conoce_clave = <span class="k">F</span>
+    <span class="k">FIN-VARIABLES</span>
+    <span class="k">PRINCIPAL</span>
+        <span class="k">SI</span> (tiene_llave <span class="o">Y</span> conoce_clave) <span class="k">ENTONCES</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Puerta Abierta"</span>)
+        <span class="k">SINO</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Alarma Activada"</span>)
+        <span class="k">FIN-SI</span>
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 9: Concatenación y Texto -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">09_mensajes_dinamicos.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Saludos
+    <span class="k">PRINCIPAL</span>
+        <span class="t">TEXTO</span> usuario = <span class="s">"Admin"</span>
+        <span class="k">IMPRIME</span>(<span class="s">"Sesión iniciada como: "</span> + usuario)
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+                <!-- Ejemplo 10: Algoritmo Combinado -->
+                <div class="example-browser">
+                    <div class="browser-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="code-title">10_par_impar_detector.prisma</div>
+                    </div>
+                    <pre><span class="k">MODULO</span> Detector
+    <span class="k">PRINCIPAL</span>
+        <span class="t">ENTERO</span> num = <span class="n">0</span>
+        <span class="k">IMPRIME</span>(<span class="s">"Introduce un número:"</span>)
+        <span class="k">LEER</span>(num)
+        
+        <span class="k">SI</span> (num % <span class="n">2</span> == <span class="n">0</span>) <span class="k">ENTONCES</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Es un número PAR"</span>)
+        <span class="k">SINO</span>
+            <span class="k">IMPRIME</span>(<span class="s">"Es un número IMPAR"</span>)
+        <span class="k">FIN-SI</span>
+    <span class="k">FIN-PRINCIPAL</span>
+<span class="k">FIN-MODULO</span></pre>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p style="font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">PRISMA LANGUAGE</p>
+        <p>Documentación técnica generada para MikeWebsING</p>
+        <p style="font-size: 0.8rem; margin-top: 1rem; color: var(--text-muted);">© 2026 Tecnológico Nacional de México
+            Campus Ocotlán</p>
+    </footer>
+
+    <script>
+        // Animación de aparición al hacer scroll
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+
+</html>

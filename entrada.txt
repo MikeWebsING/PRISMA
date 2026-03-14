@@ -1,17 +1,11 @@
-MODULO MiProyecto
+MODULO Validacion
     VARIABLES
-        ENTERO x = 10
-        TEXTO saludo = "Hola Mundo"
+        ENTERO mi_variable = 10
+        TEXTO Nombre = "Prueba 25 @ 678#$%&"
+        ENTERO _inicio_guion = 5
+        DECIMAL auto = 1.5
     FIN-VARIABLES
-
-    FUNCION VACIO Saludar()
-        IMPRIME(saludo)
-    FIN-FUNCION
-
     PRINCIPAL
-        Saludar()
-        SI (x > 5) ENTONCES
-            IMPRIME("X es mayor a 5")
-        FIN-SI
+        IMPRIME(mi_variable)
     FIN-PRINCIPAL
 FIN-MODULO

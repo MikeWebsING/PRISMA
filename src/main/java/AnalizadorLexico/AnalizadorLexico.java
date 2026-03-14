@@ -112,16 +112,22 @@ public class AnalizadorLexico {
             return new Real(x);
         }
 
-        if (Character.isLetter(preanalisis)) {
+        if (Character.isLetter(preanalisis) || preanalisis == '_') {
             StringBuffer b = new StringBuffer();
             do {
                 b.append(preanalisis);
                 leer();
-            } while (Character.isLetterOrDigit(preanalisis) || preanalisis == '-');
+            } while (Character.isLetterOrDigit(preanalisis) || preanalisis == '-' || preanalisis == '_');
             String s = b.toString();
             Palabra p = palabras.get(s);
             if (p != null)
                 return p;
+
+            if (s.matches("^[A-Z][A-Z0-9_-]*$")) {
+                String errorMsg = "Identificador invalido: Mayusculas reservadas para palabras clave ('" + s + "')";
+                return new Palabra(errorMsg, Etiqueta.ERROR);
+            }
+
             p = new Palabra(s, Etiqueta.ID);
             palabras.put(s, p);
             return p;
@@ -139,8 +145,19 @@ public class AnalizadorLexico {
             return new Palabra(b.toString(), Etiqueta.CADENA);
         }
 
-        Token t = new Token(preanalisis);
-        preanalisis = ' ';
-        return t;
+        if (esValido(preanalisis)) {
+            Token t = new Token(preanalisis);
+            preanalisis = ' ';
+            return t;
+        } else {
+            String errorMsg = "Caracter no permitido: '" + preanalisis + "'";
+            Token t = new Palabra(errorMsg, Etiqueta.ERROR);
+            preanalisis = ' ';
+            return t;
+        }
+    }
+
+    private boolean esValido(char c) {
+        return String.valueOf(c).matches("[a-zA-Z0-9+\\-*/%=><!(),\"_]");
     }
 }

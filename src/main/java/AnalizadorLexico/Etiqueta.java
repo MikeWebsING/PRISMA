@@ -8,6 +8,6 @@ public class Etiqueta {
             IMPRIME = 275, LEER = 276, Y = 277, O = 278, NO = 279, ID = 280,
             NUM_INT = 281, NUM_DEC = 282, CADENA = 283, V = 284, F = 285,
             IGUALDAD = 286, DIFERENTE = 287, MAYOR_IGUAL = 288, MENOR_IGUAL = 289,
-            VARIABLES = 290, FIN_VARIABLES = 291, ENTONCES = 292,
+            VARIABLES = 290, FIN_VARIABLES = 291, ENTONCES = 292, ERROR = 293,
             EOF = -1;
 }

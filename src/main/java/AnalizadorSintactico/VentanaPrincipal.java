@@ -79,12 +79,28 @@ public class VentanaPrincipal extends JFrame {
         scrollSalida.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(COLOR_PANEL), "SALIDA", 0, 0, null, COLOR_TEXTO));
 
-        JPanel panelCentral = new JPanel(new GridLayout(2, 1, 0, 10));
-        panelCentral.setOpaque(false);
-        panelCentral.add(scrollCodigo);
-        panelCentral.add(scrollSalida);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollCodigo, scrollSalida);
+        splitPane.setDividerLocation(450);
+        splitPane.setDividerSize(8);
+        splitPane.setContinuousLayout(true);
+        splitPane.setOpaque(false);
+        splitPane.setBorder(null);
+        
+        // Estilizar el divisor (UI específica de Swing)
+        splitPane.setUI(new javax.swing.plaf.basic.BasicSplitPaneUI() {
+            public javax.swing.plaf.basic.BasicSplitPaneDivider createDefaultDivider() {
+                return new javax.swing.plaf.basic.BasicSplitPaneDivider(this) {
+                    @Override
+                    public void paint(Graphics g) {
+                        g.setColor(COLOR_PANEL);
+                        g.fillRect(0, 0, getSize().width, getSize().height);
+                        super.paint(g);
+                    }
+                };
+            }
+        });
 
-        add(panelCentral, BorderLayout.CENTER);
+        add(splitPane, BorderLayout.CENTER);
     }
 
     private void ejecutarCompilador() {
