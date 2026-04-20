@@ -10,4 +10,52 @@ public class Etiqueta {
             IGUALDAD = 286, DIFERENTE = 287, MAYOR_IGUAL = 288, MENOR_IGUAL = 289,
             VARIABLES = 290, FIN_VARIABLES = 291, ENTONCES = 292, ERROR = 293,
             EOF = -1;
+
+    public static String obtenerNombre(int etiqueta) {
+        switch (etiqueta) {
+            case MODULO: return "MODULO";
+            case FIN_MODULO: return "FIN-MODULO";
+            case PRINCIPAL: return "PRINCIPAL";
+            case FIN_PRINCIPAL: return "FIN-PRINCIPAL";
+            case FUNCION: return "FUNCION";
+            case FIN_FUNCION: return "FIN-FUNCION";
+            case RETORNA: return "RETORNA";
+            case SI: return "SI";
+            case SINO: return "SINO";
+            case FIN_SI: return "FIN-SI";
+            case PARA: return "PARA";
+            case FIN_PARA: return "FIN-PARA";
+            case MIENTRAS: return "MIENTRAS";
+            case FIN_MIENTRAS: return "FIN-MIENTRAS";
+            case ENTERO: return "ENTERO";
+            case DECIMAL: return "DECIMAL";
+            case TEXTO: return "TEXTO";
+            case BOOLEANO: return "BOOLEANO";
+            case VACIO: return "VACIO";
+            case IMPRIME: return "IMPRIME";
+            case LEER: return "LEER";
+            case Y: return "Y";
+            case O: return "O";
+            case NO: return "NO";
+            case ID: return "ID";
+            case NUM_INT: return "NUM_INT";
+            case NUM_DEC: return "NUM_DEC";
+            case CADENA: return "CADENA";
+            case V: return "V";
+            case F: return "F";
+            case IGUALDAD: return "IGUALDAD (==)";
+            case DIFERENTE: return "DIFERENTE (!=)";
+            case MAYOR_IGUAL: return "MAYOR_IGUAL (>=)";
+            case MENOR_IGUAL: return "MENOR_IGUAL (<=)";
+            case VARIABLES: return "VARIABLES";
+            case FIN_VARIABLES: return "FIN-VARIABLES";
+            case ENTONCES: return "ENTONCES";
+            case EOF: return "FIN DE ARCHIVO (EOF)";
+            default:
+                if (etiqueta < 256 && etiqueta >= 0) {
+                    return "'" + (char) etiqueta + "'";
+                }
+                return "DESCONOCIDO (" + etiqueta + ")";
+        }
+    }
 }

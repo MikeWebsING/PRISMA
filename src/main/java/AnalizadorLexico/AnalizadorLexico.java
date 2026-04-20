@@ -5,8 +5,23 @@ import java.util.*;
 
 public class AnalizadorLexico {
     public int linea = 1;
+    public int columna = 0; // Se incrementa al leer
     char preanalisis = ' ';
     Hashtable<String, Palabra> palabras = new Hashtable<>();
+    private String[] lineasFuente = new String[0];
+
+    public void setLineasFuente(String codigo) {
+        if (codigo != null) {
+            this.lineasFuente = codigo.split("\\r?\\n");
+        }
+    }
+
+    public String obtenerTextoLinea(int n) {
+        if (n > 0 && n <= lineasFuente.length) {
+            return lineasFuente[n - 1];
+        }
+        return "";
+    }
 
     void reservar(Palabra p) {
         palabras.put(p.lexema, p);
@@ -46,6 +61,7 @@ public class AnalizadorLexico {
 
     void leer() throws IOException {
         preanalisis = (char) System.in.read();
+        columna++;
     }
 
     boolean leer(char c) throws IOException {
@@ -60,36 +76,39 @@ public class AnalizadorLexico {
         for (;; leer()) {
             if (preanalisis == ' ' || preanalisis == '\t' || preanalisis == '\r')
                 continue;
-            else if (preanalisis == '\n')
+            else if (preanalisis == '\n') {
                 linea = linea + 1;
-            else
+                columna = 0; // Se incrementará a 1 en el siguiente leer()
+            } else
                 break;
         }
 
         if (preanalisis == (char) -1)
-            return new Token(Etiqueta.EOF);
+            return new Token(Etiqueta.EOF, linea, columna);
+
+        int colInicio = columna;
 
         switch (preanalisis) {
             case '=':
                 if (leer('='))
-                    return new Palabra("==", Etiqueta.IGUALDAD);
+                    return new Palabra("==", Etiqueta.IGUALDAD, linea, colInicio);
                 else
-                    return new Token('=');
+                    return new Token('=', linea, colInicio);
             case '!':
                 if (leer('='))
-                    return new Palabra("!=", Etiqueta.DIFERENTE);
+                    return new Palabra("!=", Etiqueta.DIFERENTE, linea, colInicio);
                 else
-                    return new Token('!');
+                    return new Token('!', linea, colInicio);
             case '<':
                 if (leer('='))
-                    return new Palabra("<=", Etiqueta.MENOR_IGUAL);
+                    return new Palabra("<=", Etiqueta.MENOR_IGUAL, linea, colInicio);
                 else
-                    return new Token('<');
+                    return new Token('<', linea, colInicio);
             case '>':
                 if (leer('='))
-                    return new Palabra(">=", Etiqueta.MAYOR_IGUAL);
+                    return new Palabra(">=", Etiqueta.MAYOR_IGUAL, linea, colInicio);
                 else
-                    return new Token('>');
+                    return new Token('>', linea, colInicio);
         }
 
         if (Character.isDigit(preanalisis)) {
@@ -99,7 +118,7 @@ public class AnalizadorLexico {
                 leer();
             } while (Character.isDigit(preanalisis));
             if (preanalisis != '.')
-                return new Numero(v);
+                return new Numero(v, linea, colInicio);
             float x = v;
             float d = 10;
             for (;;) {
@@ -109,7 +128,7 @@ public class AnalizadorLexico {
                 x = x + Character.digit(preanalisis, 10) / d;
                 d = d * 10;
             }
-            return new Real(x);
+            return new Real(x, linea, colInicio);
         }
 
         if (Character.isLetter(preanalisis) || preanalisis == '_') {
@@ -120,16 +139,18 @@ public class AnalizadorLexico {
             } while (Character.isLetterOrDigit(preanalisis) || preanalisis == '-' || preanalisis == '_');
             String s = b.toString();
             Palabra p = palabras.get(s);
-            if (p != null)
-                return p;
+            if (p != null) {
+                // Clonamos para ponerle la posición actual sin afectar la reserva global
+                return new Palabra(p.lexema, p.etiqueta, linea, colInicio);
+            }
 
             if (s.matches("^[A-Z][A-Z0-9_-]*$")) {
                 String errorMsg = "Identificador invalido: Mayusculas reservadas para palabras clave ('" + s + "')";
-                return new Palabra(errorMsg, Etiqueta.ERROR);
+                return new Palabra(errorMsg, Etiqueta.ERROR, linea, colInicio);
             }
 
-            p = new Palabra(s, Etiqueta.ID);
-            palabras.put(s, p);
+            p = new Palabra(s, Etiqueta.ID, linea, colInicio);
+            // No guardar en 'palabras' de reserva para no llenar la tabla de IDs locales con posiciones fijas
             return p;
         }
 
@@ -142,16 +163,16 @@ public class AnalizadorLexico {
                 b.append(preanalisis);
             }
             leer();
-            return new Palabra(b.toString(), Etiqueta.CADENA);
+            return new Palabra(b.toString(), Etiqueta.CADENA, linea, colInicio);
         }
 
         if (esValido(preanalisis)) {
-            Token t = new Token(preanalisis);
+            Token t = new Token(preanalisis, linea, colInicio);
             preanalisis = ' ';
             return t;
         } else {
             String errorMsg = "Caracter no permitido: '" + preanalisis + "'";
-            Token t = new Palabra(errorMsg, Etiqueta.ERROR);
+            Token t = new Palabra(errorMsg, Etiqueta.ERROR, linea, colInicio);
             preanalisis = ' ';
             return t;
         }

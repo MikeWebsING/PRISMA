@@ -8,6 +8,11 @@ public class Numero extends Token {
         valor = v;
     }
 
+    public Numero(int v, int linea, int columna) {
+        super(Etiqueta.NUM_INT, linea, columna);
+        valor = v;
+    }
+
     public String toString() {
         return "" + valor;
     }

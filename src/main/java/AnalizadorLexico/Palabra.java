@@ -8,6 +8,11 @@ public class Palabra extends Token {
         lexema = s;
     }
 
+    public Palabra(String s, int etiqueta, int linea, int columna) {
+        super(etiqueta, linea, columna);
+        lexema = s;
+    }
+
     public String toString() {
         return lexema;
     }

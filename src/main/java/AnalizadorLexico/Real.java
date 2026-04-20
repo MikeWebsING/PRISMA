@@ -8,6 +8,11 @@ public class Real extends Token {
         valor = v;
     }
 
+    public Real(float v, int linea, int columna) {
+        super(Etiqueta.NUM_DEC, linea, columna);
+        valor = v;
+    }
+
     public String toString() {
         return "" + valor;
     }

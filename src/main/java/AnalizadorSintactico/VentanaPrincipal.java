@@ -31,16 +31,28 @@ public class VentanaPrincipal extends JFrame {
     }
 
     private void configurarBarraSuperior() {
-        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel panelSuperior = new JPanel(new BorderLayout());
         panelSuperior.setOpaque(false);
+        panelSuperior.setBorder(new EmptyBorder(0, 5, 10, 5));
+
+        JLabel logo = new JLabel("PRISMA");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        logo.setForeground(COLOR_ACCENTO);
+        panelSuperior.add(logo, BorderLayout.WEST);
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panelBotones.setOpaque(false);
 
         botonRun = new JButton("RUN");
         botonRun.setFocusPainted(false);
-        botonRun.setBackground(COLOR_ACCENTO);
-        botonRun.setForeground(Color.WHITE);
-        botonRun.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        botonRun.setPreferredSize(new Dimension(80, 35));
-        botonRun.setBorder(BorderFactory.createEmptyBorder());
+        // Usar un color verde sólido y texto oscuro para máximo contraste
+        botonRun.setBackground(new Color(40, 180, 130)); // Verde Prisma
+        botonRun.setForeground(new Color(10, 25, 20));   // Casi negro para el texto
+        botonRun.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        botonRun.setPreferredSize(new Dimension(110, 45));
+        botonRun.setBorder(BorderFactory.createLineBorder(new Color(10, 25, 20), 2));
+        botonRun.setContentAreaFilled(true);
+        botonRun.setOpaque(true);
 
         botonRun.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -53,7 +65,9 @@ public class VentanaPrincipal extends JFrame {
         });
 
         botonRun.addActionListener(e -> ejecutarCompilador());
-        panelSuperior.add(botonRun);
+        panelBotones.add(botonRun);
+        
+        panelSuperior.add(panelBotones, BorderLayout.EAST);
         add(panelSuperior, BorderLayout.NORTH);
     }
 
@@ -101,10 +115,69 @@ public class VentanaPrincipal extends JFrame {
         });
 
         add(splitPane, BorderLayout.CENTER);
+        
+        areaCodigo.setText(
+            "MODULO Validacion\n" +
+            "    VARIABLES\n" +
+            "        TEXTO a = \"\"\n" +
+            "        TEXTO c = \"\"\n" +
+            "        ENTERO mi_variable = 10\n" +
+            "        TEXTO a = \"\"\n" +
+            "        ENTERO _inicio_guion = 5\n" +
+            "        DECIMAL auto = 1.5\n" +
+            "        ENTERO aux = \"\"\n" +
+            "        ENTERO b = \"\"\n" +
+            "        ENTERO b1 = \"\"\n\n" +
+            "    FIN-VARIABLES\n" +
+            "    PRINCIPAL\n" +
+            "       c = a + \"hola @@@@@ &/&(mundo#\"\n" +
+            "       a = 4\n" +
+            "        \n" +
+            "       IMPRIME(\"HOLA MUNDO\")\n" +
+            "       IMPRIME(3.1223)\n" +
+            "       IMPRIME(4)\n" +
+            "       IMPRIME(a)\n\n" +
+            "       SI ( ( a < 8 ) O ( a <= 5 ) ) ENTONCES\n" +
+            "       SI ( ( a < 8 ) O ( a <= 5 ) ) ENTONCES\n" +
+            "       SI ( ( 8 < 8 ) O ( 3 <= 5 ) ) ENTONCES\n\n" +
+            "       a = a + 1\n" +
+            "       \n" +
+            "       FIN-SI\n" +
+            "       FIN-SI\n" +
+            "       FIN-SI\n\n" +
+            "PARA ( aux = 1, aux <= 10, aux = aux + 1 )\n" +
+            "    IMPRIME(aux)\n" +
+            "FIN-PARA\n" +
+            "PARA ( aux = a, aux <= 10, aux = aux + 1 )\n" +
+            "    IMPRIME(aux)\n" +
+            "FIN-PARA\n" +
+            "PARA ( aux = 1, aux <= a, aux = aux + 1 )\n" +
+            "    IMPRIME(aux)\n" +
+            "FIN-PARA\n" +
+            "PARA ( aux = a, aux <= b, aux = aux + 1 )\n" +
+            "    IMPRIME(aux)\n" +
+            "FIN-PARA\n" +
+            "MIENTRAS ( a < b1 )\n" +
+            "    IMPRIME(a)\n" +
+            "    a = a + 1\n" +
+            "FIN-MIENTRAS\n" +
+            "MIENTRAS ( a < 5.5 )\n" +
+            "    IMPRIME(a)\n" +
+            "FIN-MIENTRAS\n" +
+            "MIENTRAS ( 0.5 >= b )\n" +
+            "    IMPRIME(b)\n" +
+            "FIN-MIENTRAS\n" +
+            "MIENTRAS ( 3 > 2 )\n" +
+            "    IMPRIME(3)\n" +
+            "FIN-MIENTRAS\n" +
+            "LEER ( a )\n\n" +
+            "    FIN-PRINCIPAL\n" +
+            "FIN-MODULO"
+        );
     }
 
     private void ejecutarCompilador() {
-        areaSalida.setText("Compilando PRISMA...\n");
+        areaSalida.setText("");
         String codigo = areaCodigo.getText();
 
         if (codigo.trim().isEmpty()) {
@@ -117,13 +190,13 @@ public class VentanaPrincipal extends JFrame {
             System.setIn(stream);
 
             AnalizadorLexico lexico = new AnalizadorLexico();
+            lexico.setLineasFuente(codigo);
             AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
 
             sintactico.analizar();
 
-            areaSalida.append(">>> ANALISIS FINALIZADO: El codigo es sintacticamente correcto.\n");
         } catch (ManejadorError err) {
-            areaSalida.append(">>> ERROR SINTACTICO: " + err.getMessage() + "\n");
+            areaSalida.append(err.getMessage() + "\n");
         } catch (Exception ex) {
             areaSalida.append(">>> ERROR CRITICO: " + ex.getMessage() + "\n");
         }

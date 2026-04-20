@@ -1,0 +1,6 @@
+Encuentre y ejecute el archivo llamado VentanaPrincipal.java 
+El codigo de prueba ya viene ahi o tambien puede probar con mas 
+directamente en en la ventana.
+
+La ruta completa es:
+src\main\java\AnalizadorSintactico\VentanaPrincipal.java
