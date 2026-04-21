@@ -1,44 +1,26 @@
 package AnalizadorSintactico;
 
 import AnalizadorLexico.*;
+import AnalizadorSemantico.Semantico;
 import java.io.*;
 
 public class AnalizadorSintactico {
-    // EXPRESIONES REGULARES PARA VALIDACIÓN SINTÁCTICA
-    private static final String MODULO = "^MODULO\\s+[a-z_][a-zA-Z0-9_]*$";
-    private static final String VARIABLES = "^VARIABLES$";
-    private static final String FIN_VARIABLES = "^FIN-VARIABLES$";
-    private static final String DECLARACION = "^(ENTERO|DECIMAL|TEXTO|BOOLEANO|VACIO)\\s+[a-z_][a-zA-Z0-9_]*(\\s*=\\s*.+)?$";
-    private static final String FUNCION = "^FUNCION\\s+(ENTERO|DECIMAL|TEXTO|BOOLEANO|VACIO)\\s+[a-z_][a-zA-Z0-9_]*\\s*\\(.*\\)$";
-    private static final String FIN_FUNCION = "^FIN-FUNCION$";
-    private static final String PRINCIPAL = "^PRINCIPAL$";
-    private static final String FIN_PRINCIPAL = "^FIN-PRINCIPAL$";
-    private static final String FIN_MODULO = "^FIN-MODULO$";
-    private static final String SI = "^SI\\s*\\(.+\\)\\s*ENTONCES$";
-    private static final String SINO = "^SINO$";
-    private static final String FIN_SI = "^FIN-SI$";
-    private static final String PARA = "^PARA\\s*\\(.+\\)$";
-    private static final String FIN_PARA = "^FIN-PARA$";
-    private static final String MIENTRAS = "^MIENTRAS\\s*\\(.+\\)$";
-    private static final String FIN_MIENTRAS = "^FIN-MIENTRAS$";
-    private static final String IMPRIME = "^IMPRIME\\s*\\(.+\\)$";
-    private static final String LEER = "^LEER\\s*\\([a-z_][a-zA-Z0-9_]*\\)$";
-    private static final String RETORNA = "^RETORNA\\s+.+$";
-    private static final String ASIGNACION = "^[a-z_][a-zA-Z0-9_]*\\s*=\\s*.+$";
-
+    private Semantico sem;
+    // EXPRESIONES REGULARES PARA VALIDACION SINTACTICA
     private AnalizadorLexico lexico;
     private Token preanalisis;
     private Entorno superior = null;
 
     public AnalizadorSintactico(AnalizadorLexico l) throws IOException {
         lexico = l;
+        sem = new Semantico();
         moverse();
     }
 
     private void moverse() throws IOException {
         preanalisis = lexico.escanear();
         if (preanalisis.etiqueta == Etiqueta.ERROR) {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "LÉXICO", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "LEXICO", 
                                      preanalisis.toString(), lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
@@ -47,7 +29,7 @@ public class AnalizadorSintactico {
         if (preanalisis.etiqueta == etiqueta) {
             moverse();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTÁCTICO",
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO",
                     "Se esperaba: " + Etiqueta.obtenerNombre(etiqueta) + 
                     " pero se encontro la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")",
                     lexico.obtenerTextoLinea(preanalisis.linea));
@@ -57,6 +39,10 @@ public class AnalizadorSintactico {
     public void analizar() throws IOException {
         superior = new Entorno(null);
         programa();
+    }
+
+    public Semantico getSem() {
+        return sem;
     }
 
     private void programa() throws IOException {
@@ -127,7 +113,7 @@ public class AnalizadorSintactico {
         tipo();
 
         if (!(preanalisis instanceof Palabra)) {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTÁCTICO", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
                                      "Se esperaba un identificador válido.", lexico.obtenerTextoLinea(preanalisis.linea));
         }
 
@@ -135,10 +121,12 @@ public class AnalizadorSintactico {
         coincidir(Etiqueta.ID);
 
         superior.poner(nombreVar, new Simbolo(tipoVar, nombreVar));
+        sem.declaracion(nombreVar, tipoVar, preanalisis.linea, preanalisis.columna);
 
         if (preanalisis.etiqueta == '=') {
             coincidir('=');
             expresion_logica();
+            sem.asignacion(nombreVar, preanalisis.linea, preanalisis.columna);
         }
     }
 
@@ -146,7 +134,7 @@ public class AnalizadorSintactico {
         if (esTipo(preanalisis.etiqueta)) {
             moverse();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTÁCTICO", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
                                      "Tipo de dato no esperado: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
@@ -187,17 +175,21 @@ public class AnalizadorSintactico {
         } else if (e == Etiqueta.ID) {
             asignacion_o_llamada();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTÁCTICO", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
                                      "Instruccion no reconocida cerca de la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
     private void asignacion_o_llamada() throws IOException {
+        String id = ((Palabra) preanalisis).lexema;
+        int l = preanalisis.linea;
+        int c = preanalisis.columna;
         coincidir(Etiqueta.ID);
         if (preanalisis.etiqueta == '=') {
             coincidir('=');
             expresion_logica();
+            sem.asignacion(id, l, c);
         } else if (preanalisis.etiqueta == '(') {
             coincidir('(');
             argumentos();
@@ -206,9 +198,13 @@ public class AnalizadorSintactico {
     }
 
     private void asignacion_simple() throws IOException {
+        String id = ((Palabra) preanalisis).lexema;
+        int l = preanalisis.linea;
+        int c = preanalisis.columna;
         coincidir(Etiqueta.ID);
         coincidir('=');
         expresion_logica();
+        sem.asignacion(id, l, c);
     }
 
     private void condicional_si() throws IOException {
@@ -251,13 +247,18 @@ public class AnalizadorSintactico {
         coincidir('(');
         expresion_logica();
         coincidir(')');
+        sem.imprime();
     }
 
     private void leer_func() throws IOException {
         coincidir(Etiqueta.LEER);
         coincidir('(');
+        String id = ((Palabra) preanalisis).lexema;
+        int l = preanalisis.linea;
+        int c = preanalisis.columna;
         coincidir(Etiqueta.ID);
         coincidir(')');
+        sem.leer(id, l, c);
     }
 
     private void ciclo_para() throws IOException {
@@ -353,7 +354,7 @@ public class AnalizadorSintactico {
         } else if (e == Etiqueta.F) {
             moverse();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTÁCTICO", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
                                      "Error de expresion cerca de la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }

@@ -9,6 +9,7 @@ public class AnalizadorLexico {
     char preanalisis = ' ';
     Hashtable<String, Palabra> palabras = new Hashtable<>();
     private String[] lineasFuente = new String[0];
+    public ArrayList<String> erroresLexicos = new ArrayList<>();
 
     public void setLineasFuente(String codigo) {
         if (codigo != null) {
@@ -145,8 +146,10 @@ public class AnalizadorLexico {
             }
 
             if (s.matches("^[A-Z][A-Z0-9_-]*$")) {
-                String errorMsg = "Identificador invalido: Mayusculas reservadas para palabras clave ('" + s + "')";
-                return new Palabra(errorMsg, Etiqueta.ERROR, linea, colInicio);
+                erroresLexicos.add(new AnalizadorSintactico.ManejadorError(linea, colInicio, "LEXICO", 
+                    "Identificador invalido: Mayusculas reservadas para palabras clave ('" + s + "')", 
+                    obtenerTextoLinea(linea)).getMessage());
+                return new Palabra(s, Etiqueta.ID, linea, colInicio);
             }
 
             p = new Palabra(s, Etiqueta.ID, linea, colInicio);
