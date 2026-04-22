@@ -5,367 +5,377 @@ import AnalizadorSemantico.Semantico;
 import java.io.*;
 
 public class AnalizadorSintactico {
-    private Semantico sem;
-    // EXPRESIONES REGULARES PARA VALIDACION SINTACTICA
+    private Semantico semantico;
     private AnalizadorLexico lexico;
-    private Token preanalisis;
-    private Entorno superior = null;
+    private SimboloLexico preanalisis;
+    private Entorno entornoActual = null;
 
-    public AnalizadorSintactico(AnalizadorLexico l) throws IOException {
-        lexico = l;
-        sem = new Semantico();
-        moverse();
+    public AnalizadorSintactico(AnalizadorLexico analizadorLexico) throws IOException {
+        lexico = analizadorLexico;
+        semantico = new Semantico();
+        avanzar();
     }
 
-    private void moverse() throws IOException {
-        preanalisis = lexico.escanear();
+    private void avanzar() throws IOException {
+        preanalisis = lexico.obtenerSiguienteToken();
         if (preanalisis.etiqueta == Etiqueta.ERROR) {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "LEXICO", 
                                      preanalisis.toString(), lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    private void coincidir(int etiqueta) throws IOException {
-        if (preanalisis.etiqueta == etiqueta) {
-            moverse();
+    private void emparejar(int etiquetaEsperada) throws IOException {
+        if (preanalisis.etiqueta == etiquetaEsperada) {
+            avanzar();
         } else {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO",
-                    "Se esperaba: " + Etiqueta.obtenerNombre(etiqueta) + 
-                    " pero se encontro la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")",
+                    "Se esperaba: " + Etiqueta.obtenerNombre(etiquetaEsperada) + 
+                    " pero se encontro: '" + preanalisis.toString() + "'",
                     lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    public void analizar() throws IOException {
-        superior = new Entorno(null);
-        programa();
+    public void iniciarAnalisis() throws IOException {
+        entornoActual = new Entorno(null);
+        procesoPrograma();
     }
 
-    public Semantico getSem() {
-        return sem;
+    public Semantico obtenerSemantico() {
+        return semantico;
     }
 
-    private void programa() throws IOException {
-        coincidir(Etiqueta.MODULO);
-        coincidir(Etiqueta.ID);
-        coincidir(Etiqueta.VARIABLES);
-        decls_globales();
-        coincidir(Etiqueta.FIN_VARIABLES);
-        decls_func();
-        coincidir(Etiqueta.PRINCIPAL);
+    private void procesoPrograma() throws IOException {
+        emparejar(Etiqueta.MODULO);
+        emparejar(Etiqueta.IDENTIFICADOR);
+        emparejar(Etiqueta.VARIABLES);
+        declaracionesGlobales();
+        emparejar(Etiqueta.FIN_VARIABLES);
+        declaracionesFunciones();
+        emparejar(Etiqueta.PRINCIPAL);
 
-        Entorno entornoAnterior = superior;
-        superior = new Entorno(superior);
+        Entorno entornoPrevio = entornoActual;
+        entornoActual = new Entorno(entornoActual);
 
-        bloque();
+        bloqueInstrucciones();
 
-        coincidir(Etiqueta.FIN_PRINCIPAL);
-        superior = entornoAnterior;
-        coincidir(Etiqueta.FIN_MODULO);
+        emparejar(Etiqueta.FIN_PRINCIPAL);
+        entornoActual = entornoPrevio;
+        emparejar(Etiqueta.FIN_MODULO);
     }
 
-    private void decls_globales() throws IOException {
-        while (esTipo(preanalisis.etiqueta)) {
-            declaracion_variable();
+    private void declaracionesGlobales() throws IOException {
+        while (esUnTipoDato(preanalisis.etiqueta)) {
+            declararVariable();
         }
     }
 
-    private void decls_func() throws IOException {
+    private void declaracionesFunciones() throws IOException {
         while (preanalisis.etiqueta == Etiqueta.FUNCION) {
-            coincidir(Etiqueta.FUNCION);
-            int tipoFunc = preanalisis.etiqueta;
-            tipo();
-            String nombreFunc = ((Palabra) preanalisis).lexema;
-            coincidir(Etiqueta.ID);
+            emparejar(Etiqueta.FUNCION);
+            int tipoFuncion = preanalisis.etiqueta;
+            procesarTipo();
+            String nombreFuncion = ((Palabra) preanalisis).lexema;
+            emparejar(Etiqueta.IDENTIFICADOR);
 
-            superior.poner(nombreFunc, new Simbolo(tipoFunc, nombreFunc));
+            entornoActual.agregar(nombreFuncion, new Simbolo(tipoFuncion, nombreFuncion));
 
-            Entorno entornoAnterior = superior;
-            superior = new Entorno(superior);
+            Entorno entornoPrevio = entornoActual;
+            entornoActual = new Entorno(entornoActual);
 
-            coincidir('(');
-            if (esTipo(preanalisis.etiqueta))
-                parametros();
-            coincidir(')');
+            emparejar('(');
+            if (esUnTipoDato(preanalisis.etiqueta)) {
+                procesarParametros();
+            }
+            emparejar(')');
 
-            bloque();
+            bloqueInstrucciones();
 
-            coincidir(Etiqueta.FIN_FUNCION);
-            superior = entornoAnterior;
+            emparejar(Etiqueta.FIN_FUNCION);
+            entornoActual = entornoPrevio;
         }
     }
 
-    private void parametros() throws IOException {
-        int t = preanalisis.etiqueta;
-        tipo();
-        String id = ((Palabra) preanalisis).lexema;
-        coincidir(Etiqueta.ID);
-        superior.poner(id, new Simbolo(t, id));
+    private void procesarParametros() throws IOException {
+        int tipoParametro = preanalisis.etiqueta;
+        procesarTipo();
+        String idParametro = ((Palabra) preanalisis).lexema;
+        emparejar(Etiqueta.IDENTIFICADOR);
+        entornoActual.agregar(idParametro, new Simbolo(tipoParametro, idParametro));
 
         if (preanalisis.etiqueta == ',') {
-            coincidir(',');
-            parametros();
+            emparejar(',');
+            procesarParametros();
         }
     }
 
-    private void declaracion_variable() throws IOException {
-        int tipoVar = preanalisis.etiqueta;
-        tipo();
+    private void declararVariable() throws IOException {
+        int tipoV = preanalisis.etiqueta;
+        procesarTipo();
 
         if (!(preanalisis instanceof Palabra)) {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Se esperaba un identificador válido.", lexico.obtenerTextoLinea(preanalisis.linea));
+                                     "Identificador no valido.", lexico.obtenerTextoLinea(preanalisis.linea));
         }
 
-        String nombreVar = ((Palabra) preanalisis).lexema;
-        coincidir(Etiqueta.ID);
+        String nombreV = ((Palabra) preanalisis).lexema;
+        int linV = preanalisis.linea;
+        int colV = preanalisis.columna;
+        emparejar(Etiqueta.IDENTIFICADOR);
 
-        superior.poner(nombreVar, new Simbolo(tipoVar, nombreVar));
-        sem.declaracion(nombreVar, tipoVar, preanalisis.linea, preanalisis.columna);
+        entornoActual.agregar(nombreV, new Simbolo(tipoV, nombreV));
+        semantico.realizarDeclaracion(nombreV, tipoV, linV, colV);
 
         if (preanalisis.etiqueta == '=') {
-            coincidir('=');
-            expresion_logica();
-            sem.asignacion(nombreVar, preanalisis.linea, preanalisis.columna);
+            emparejar('=');
+            expresionLogica();
+            semantico.realizarAsignacion(nombreV, linV, colV);
         }
     }
 
-    private void tipo() throws IOException {
-        if (esTipo(preanalisis.etiqueta)) {
-            moverse();
+    private void procesarTipo() throws IOException {
+        if (esUnTipoDato(preanalisis.etiqueta)) {
+            avanzar();
         } else {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Tipo de dato no esperado: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
+                                     "Tipo de dato invalidado.", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    private boolean esTipo(int e) {
-        return (e == Etiqueta.ENTERO || e == Etiqueta.DECIMAL ||
-                e == Etiqueta.TEXTO || e == Etiqueta.BOOLEANO || e == Etiqueta.VACIO);
+    private boolean esUnTipoDato(int etiqueta) {
+        return (etiqueta == Etiqueta.ENTERO || etiqueta == Etiqueta.DECIMAL ||
+                etiqueta == Etiqueta.TEXTO || etiqueta == Etiqueta.BOOLEANO || etiqueta == Etiqueta.VACIO);
     }
 
-    private void bloque() throws IOException {
+    private void bloqueInstrucciones() throws IOException {
         while (preanalisis.etiqueta != Etiqueta.FIN_PRINCIPAL &&
                 preanalisis.etiqueta != Etiqueta.FIN_SI &&
                 preanalisis.etiqueta != Etiqueta.FIN_PARA &&
                 preanalisis.etiqueta != Etiqueta.FIN_MIENTRAS &&
                 preanalisis.etiqueta != Etiqueta.SINO &&
                 preanalisis.etiqueta != Etiqueta.FIN_FUNCION &&
-                preanalisis.etiqueta != Etiqueta.EOF) {
-            instruccion();
+                preanalisis.etiqueta != Etiqueta.FIN_ARCHIVO) {
+            instruccionSimple();
         }
     }
 
-    private void instruccion() throws IOException {
+    private void instruccionSimple() throws IOException {
         int e = preanalisis.etiqueta;
         if (e == Etiqueta.SI) {
-            condicional_si();
+            procesoSi();
         } else if (e == Etiqueta.PARA) {
-            ciclo_para();
+            procesoPara();
         } else if (e == Etiqueta.MIENTRAS) {
-            ciclo_mientras();
+            procesoMientras();
         } else if (e == Etiqueta.IMPRIME) {
-            imprimir();
+            procesoImprimir();
         } else if (e == Etiqueta.LEER) {
-            leer_func();
+            procesoLeer();
         } else if (e == Etiqueta.RETORNA) {
-            coincidir(Etiqueta.RETORNA);
-            expresion_logica();
-        } else if (e == Etiqueta.ID) {
-            asignacion_o_llamada();
+            emparejar(Etiqueta.RETORNA);
+            expresionLogica();
+        } else if (e == Etiqueta.IDENTIFICADOR) {
+            gestionAsignacionLlamada();
         } else {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Instruccion no reconocida cerca de la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
+                                     "Instruccion desconocida: '" + preanalisis.toString() + "'", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    private void asignacion_o_llamada() throws IOException {
-        String id = ((Palabra) preanalisis).lexema;
-        int l = preanalisis.linea;
-        int c = preanalisis.columna;
-        coincidir(Etiqueta.ID);
+    private void gestionAsignacionLlamada() throws IOException {
+        String idVariable = ((Palabra) preanalisis).lexema;
+        int lin = preanalisis.linea;
+        int col = preanalisis.columna;
+        emparejar(Etiqueta.IDENTIFICADOR);
         if (preanalisis.etiqueta == '=') {
-            coincidir('=');
-            expresion_logica();
-            sem.asignacion(id, l, c);
+            emparejar('=');
+            expresionLogica();
+            semantico.realizarAsignacion(idVariable, lin, col);
         } else if (preanalisis.etiqueta == '(') {
-            coincidir('(');
-            argumentos();
-            coincidir(')');
+            emparejar('(');
+            procesarArgumentos();
+            emparejar(')');
         }
     }
 
-    private void asignacion_simple() throws IOException {
-        String id = ((Palabra) preanalisis).lexema;
-        int l = preanalisis.linea;
-        int c = preanalisis.columna;
-        coincidir(Etiqueta.ID);
-        coincidir('=');
-        expresion_logica();
-        sem.asignacion(id, l, c);
+    private void asignacionDirecta() throws IOException {
+        String idVariable = ((Palabra) preanalisis).lexema;
+        int lin = preanalisis.linea;
+        int col = preanalisis.columna;
+        emparejar(Etiqueta.IDENTIFICADOR);
+        emparejar('=');
+        expresionLogica();
+        semantico.realizarAsignacion(idVariable, lin, col);
     }
 
-    private void condicional_si() throws IOException {
-        coincidir(Etiqueta.SI);
-        coincidir('(');
-        expresion_logica();
-        coincidir(')');
-        coincidir(Etiqueta.ENTONCES);
+    private void procesoSi() throws IOException {
+        emparejar(Etiqueta.SI);
+        emparejar('(');
+        expresionLogica();
+        emparejar(')');
+        emparejar(Etiqueta.ENTONCES);
 
-        Entorno previo = superior;
-        superior = new Entorno(superior);
-        bloque();
-        superior = previo;
+        Entorno entornoPrevio = entornoActual;
+        entornoActual = new Entorno(entornoActual);
+        bloqueInstrucciones();
+        entornoActual = entornoPrevio;
 
         if (preanalisis.etiqueta == Etiqueta.SINO) {
-            coincidir(Etiqueta.SINO);
-            superior = new Entorno(superior);
-            bloque();
-            superior = previo;
+            emparejar(Etiqueta.SINO);
+            entornoActual = new Entorno(entornoActual);
+            bloqueInstrucciones();
+            entornoActual = entornoPrevio;
         }
-        coincidir(Etiqueta.FIN_SI);
+        emparejar(Etiqueta.FIN_SI);
     }
 
-    private void ciclo_mientras() throws IOException {
-        coincidir(Etiqueta.MIENTRAS);
-        coincidir('(');
-        expresion_logica();
-        coincidir(')');
+    private void procesoMientras() throws IOException {
+        emparejar(Etiqueta.MIENTRAS);
+        emparejar('(');
+        expresionLogica();
+        emparejar(')');
 
-        Entorno previo = superior;
-        superior = new Entorno(superior);
-        bloque();
-        superior = previo;
+        Entorno entornoPrevio = entornoActual;
+        entornoActual = new Entorno(entornoActual);
+        bloqueInstrucciones();
+        entornoActual = entornoPrevio;
 
-        coincidir(Etiqueta.FIN_MIENTRAS);
+        emparejar(Etiqueta.FIN_MIENTRAS);
     }
 
-    private void imprimir() throws IOException {
-        coincidir(Etiqueta.IMPRIME);
-        coincidir('(');
-        expresion_logica();
-        coincidir(')');
-        sem.imprime();
+    private void procesoImprimir() throws IOException {
+        emparejar(Etiqueta.IMPRIME);
+        emparejar('(');
+        expresionLogica();
+        emparejar(')');
     }
 
-    private void leer_func() throws IOException {
-        coincidir(Etiqueta.LEER);
-        coincidir('(');
-        String id = ((Palabra) preanalisis).lexema;
-        int l = preanalisis.linea;
-        int c = preanalisis.columna;
-        coincidir(Etiqueta.ID);
-        coincidir(')');
-        sem.leer(id, l, c);
+    private void procesoLeer() throws IOException {
+        emparejar(Etiqueta.LEER);
+        emparejar('(');
+        String idVariable = ((Palabra) preanalisis).lexema;
+        int lin = preanalisis.linea;
+        int col = preanalisis.columna;
+        emparejar(Etiqueta.IDENTIFICADOR);
+        emparejar(')');
+        semantico.realizarLectura(idVariable, lin, col);
     }
 
-    private void ciclo_para() throws IOException {
-        coincidir(Etiqueta.PARA);
-        coincidir('(');
-        asignacion_simple();
-        coincidir(',');
-        expresion_logica();
-        coincidir(',');
-        asignacion_simple();
-        coincidir(')');
+    private void procesoPara() throws IOException {
+        emparejar(Etiqueta.PARA);
+        emparejar('(');
+        asignacionDirecta();
+        emparejar(',');
+        expresionLogica();
+        emparejar(',');
+        asignacionDirecta();
+        emparejar(')');
 
-        Entorno previo = superior;
-        superior = new Entorno(superior);
-        bloque();
-        superior = previo;
+        Entorno entornoPrevio = entornoActual;
+        entornoActual = new Entorno(entornoActual);
+        bloqueInstrucciones();
+        entornoActual = entornoPrevio;
 
-        coincidir(Etiqueta.FIN_PARA);
+        emparejar(Etiqueta.FIN_PARA);
     }
 
-    private void expresion_logica() throws IOException {
-        termino_logico();
+    private void expresionLogica() throws IOException {
+        terminoLogico();
         while (preanalisis.etiqueta == Etiqueta.O) {
-            coincidir(Etiqueta.O);
-            termino_logico();
+            emparejar(Etiqueta.O);
+            terminoLogico();
         }
     }
 
-    private void termino_logico() throws IOException {
-        factor_logico();
+    private void terminoLogico() throws IOException {
+        factorLogico();
         while (preanalisis.etiqueta == Etiqueta.Y) {
-            coincidir(Etiqueta.Y);
-            factor_logico();
+            emparejar(Etiqueta.Y);
+            factorLogico();
         }
     }
 
-    private void factor_logico() throws IOException {
-        if (preanalisis.etiqueta == '!') {
-            coincidir('!');
-            factor_logico();
+    private void factorLogico() throws IOException {
+        if (preanalisis.etiqueta == Etiqueta.NO) {
+            emparejar(Etiqueta.NO);
+            factorLogico();
         } else {
-            expresion_relacional();
+            expresionRelacional();
         }
     }
 
-    private void expresion_relacional() throws IOException {
-        expresion_aritmetica();
-        if (preanalisis.etiqueta == '<' || preanalisis.etiqueta == '>' ||
+    private void expresionRelacional() throws IOException {
+        expresionAritmetica();
+        while (preanalisis.etiqueta == '<' || preanalisis.etiqueta == '>' ||
                 preanalisis.etiqueta == Etiqueta.MAYOR_IGUAL || preanalisis.etiqueta == Etiqueta.MENOR_IGUAL ||
                 preanalisis.etiqueta == Etiqueta.IGUALDAD || preanalisis.etiqueta == Etiqueta.DIFERENTE) {
-            moverse();
-            expresion_aritmetica();
+            avanzar();
+            expresionAritmetica();
         }
     }
 
-    private void expresion_aritmetica() throws IOException {
-        termino_aritmetico();
+    private void expresionAritmetica() throws IOException {
+        terminoAritmetico();
         while (preanalisis.etiqueta == '+' || preanalisis.etiqueta == '-') {
-            moverse();
-            termino_aritmetico();
+            avanzar();
+            terminoAritmetico();
         }
     }
 
-    private void termino_aritmetico() throws IOException {
-        factor_aritmetico();
+    private void terminoAritmetico() throws IOException {
+        expresionUnaria();
         while (preanalisis.etiqueta == '*' || preanalisis.etiqueta == '/' || preanalisis.etiqueta == '%') {
-            moverse();
-            factor_aritmetico();
+            avanzar();
+            expresionUnaria();
         }
     }
 
-    private void factor_aritmetico() throws IOException {
+    private void expresionUnaria() throws IOException {
+        if (preanalisis.etiqueta == '-') {
+            avanzar();
+            expresionUnaria();
+        } else {
+            factorAritmetico();
+        }
+    }
+
+    private void factorAritmetico() throws IOException {
         int e = preanalisis.etiqueta;
         if (e == '(') {
-            coincidir('(');
-            expresion_logica();
-            coincidir(')');
-        } else if (e == Etiqueta.ID) {
-            coincidir(Etiqueta.ID);
+            emparejar('(');
+            expresionLogica();
+            emparejar(')');
+        } else if (e == Etiqueta.IDENTIFICADOR) {
+            emparejar(Etiqueta.IDENTIFICADOR);
             if (preanalisis.etiqueta == '(') {
-                coincidir('(');
-                argumentos();
-                coincidir(')');
+                emparejar('(');
+                procesarArgumentos();
+                emparejar(')');
             }
-        } else if (e == Etiqueta.NUM_INT) {
-            moverse();
-        } else if (e == Etiqueta.NUM_DEC) {
-            moverse();
+        } else if (e == Etiqueta.NUMERO_ENTERO) {
+            avanzar();
+        } else if (e == Etiqueta.NUMERO_DECIMAL) {
+            avanzar();
         } else if (e == Etiqueta.CADENA) {
-            moverse();
-        } else if (e == Etiqueta.V) {
-            moverse();
-        } else if (e == Etiqueta.F) {
-            moverse();
+            avanzar();
+        } else if (e == Etiqueta.VERDADERO) {
+            avanzar();
+        } else if (e == Etiqueta.FALSO) {
+            avanzar();
         } else {
             throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Error de expresion cerca de la palabra: '" + preanalisis.toString() + "' (" + Etiqueta.obtenerNombre(preanalisis.etiqueta) + ")", 
+                                     "Error en expresion.", 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    private void argumentos() throws IOException {
+    private void procesarArgumentos() throws IOException {
         if (preanalisis.etiqueta != ')') {
-            expresion_logica();
+            expresionLogica();
             while (preanalisis.etiqueta == ',') {
-                coincidir(',');
-                expresion_logica();
+                emparejar(',');
+                expresionLogica();
             }
         }
     }

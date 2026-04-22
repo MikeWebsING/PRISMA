@@ -1,25 +1,28 @@
 package AnalizadorSintactico;
 
-import java.util.Hashtable;
-
 public class Entorno {
-    private Hashtable<String, Simbolo> tabla;
-    protected Entorno ant;
+    private Simbolo[] tabla;
+    private int contadorSimbolos = 0;
+    protected Entorno anterior;
 
-    public Entorno(Entorno n) {
-        tabla = new Hashtable<>();
-        ant = n;
+    public Entorno(Entorno entornoAnterior) {
+        tabla = new Simbolo[200];
+        anterior = entornoAnterior;
     }
 
-    public void poner(String s, Simbolo sym) {
-        tabla.put(s, sym);
+    public void agregar(String lexema, Simbolo simbolo) {
+        if (contadorSimbolos < tabla.length) {
+            tabla[contadorSimbolos++] = simbolo;
+        }
     }
 
-    public Simbolo obtener(String s) {
-        for (Entorno e = this; e != null; e = e.ant) {
-            Simbolo encontrado = e.tabla.get(s);
-            if (encontrado != null)
-                return encontrado;
+    public Simbolo buscar(String lexema) {
+        for (Entorno actual = this; actual != null; actual = actual.anterior) {
+            for (int i = 0; i < actual.contadorSimbolos; i++) {
+                if (actual.tabla[i].nombre.equals(lexema)) {
+                    return actual.tabla[i];
+                }
+            }
         }
         return null;
     }

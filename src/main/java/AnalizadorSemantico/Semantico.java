@@ -1,63 +1,71 @@
 package AnalizadorSemantico;
-import java.util.ArrayList;
+
 import AnalizadorLexico.Etiqueta;
 
 public class Semantico {
-    // Estructura basica (ArrayList por regla de no usar Hashtable)
-    public ArrayList<SimboloS> tablaSimbolos;
-    public ArrayList<String> errores;
+    private SimboloS[] tablaSimbolos;
+    private int contadorSimbolos = 0;
+    
+    private String[] listaErrores;
+    private int contadorErrores = 0;
 
     public Semantico() {
-        tablaSimbolos = new ArrayList<>();
-        errores = new ArrayList<>();
+        tablaSimbolos = new SimboloS[500];
+        listaErrores = new String[500];
     }
 
-    public void regVar(int l, int c, String n, String t, boolean i) {
-        if (buscarSimbolo(n) != null) {
-            err(l, c, "E2", "Variable '" + n + "' ya declarada.");
+    public void registrarVariable(int linea, int columna, String nombre, String tipo, boolean inicializado) {
+        if (buscarSimbolo(nombre) != null) {
+            registrarError(linea, columna, "E2", "Variable '" + nombre + "' ya declarada.");
         } else {
-            tablaSimbolos.add(new SimboloS(n, t, i));
+            if (contadorSimbolos < tablaSimbolos.length) {
+                tablaSimbolos[contadorSimbolos++] = new SimboloS(nombre, tipo, inicializado);
+            }
         }
     }
 
-    public SimboloS buscarSimbolo(String n) {
-        for (SimboloS s : tablaSimbolos) {
-            if (s.n.equals(n)) return s;
+    public SimboloS buscarSimbolo(String nombre) {
+        for (int i = 0; i < contadorSimbolos; i++) {
+            if (tablaSimbolos[i].nombre.equals(nombre)) {
+                return tablaSimbolos[i];
+            }
         }
         return null;
     }
 
-    public void declaracion(String n, int t, int l, int c) {
-        regVar(l, c, n, Etiqueta.obtenerNombre(t), false);
+    public void realizarDeclaracion(String nombre, int etiquetaTipo, int linea, int columna) {
+        registrarVariable(linea, columna, nombre, Etiqueta.obtenerNombre(etiquetaTipo), false);
     }
 
-    public void asignacion(String n, int l, int c) {
-        SimboloS s = buscarSimbolo(n);
-        if (s == null) {
-            err(l, c, "E1", "Variable '" + n + "' no declarada.");
+    public void realizarAsignacion(String nombre, int linea, int columna) {
+        SimboloS simbolo = buscarSimbolo(nombre);
+        if (simbolo == null) {
+            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
         } else {
-            s.i = true;
+            simbolo.inicializado = true;
         }
     }
 
-    public void leer(String n, int l, int c) {
-        SimboloS s = buscarSimbolo(n);
-        if (s == null) {
-            err(l, c, "E1", "Variable '" + n + "' no declarada.");
+    public void realizarLectura(String nombre, int linea, int columna) {
+        SimboloS simbolo = buscarSimbolo(nombre);
+        if (simbolo == null) {
+            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
         } else {
-            s.i = true;
+            simbolo.inicializado = true;
         }
     }
 
-    public void imprime() {
-        // Solo para analisis, no hace nada en ejecucion
+    public void registrarError(int linea, int columna, String clave, String mensaje) {
+        if (contadorErrores < listaErrores.length) {
+            listaErrores[contadorErrores++] = "[" + clave + "] Linea " + linea + ", Col " + columna + ": " + mensaje;
+        }
     }
 
-    public void err(int l, int c, String k, String m) {
-        errores.add("[" + k + "] Linea " + l + ", Col " + c + ": " + m);
-    }
-
-    public ArrayList<String> obtenerErroresMsg() {
-        return errores;
+    public String[] obtenerMensajesDeError() {
+        String[] copiaErrores = new String[contadorErrores];
+        for (int i = 0; i < contadorErrores; i++) {
+            copiaErrores[i] = listaErrores[i];
+        }
+        return copiaErrores;
     }
 }

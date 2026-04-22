@@ -6,14 +6,11 @@ public class ManejadorError extends RuntimeException {
     }
 
     private static String formatearMensaje(int linea, int columna, String tipo, String mensaje, String textoLinea) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ERROR ").append(tipo).append(" Linea ").append(linea).append(": ").append(mensaje);
-        sb.append("\n    > ").append(textoLinea);
-        sb.append("\n      ");
+        String resultado = "ERROR " + tipo + " Linea " + linea + ": " + mensaje + "\n    > " + textoLinea + "\n      ";
         for (int i = 1; i < columna; i++) {
-            sb.append(" ");
+            resultado = resultado + " ";
         }
-        sb.append("^");
-        return sb.toString();
+        resultado = resultado + "^";
+        return resultado;
     }
 }

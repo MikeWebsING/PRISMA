@@ -1,34 +1,41 @@
 package AnalizadorLexico;
 
 import java.io.*;
-import java.util.*;
 
 public class AnalizadorLexico {
     public int linea = 1;
-    public int columna = 0; // Se incrementa al leer
+    public int columna = 0;
     char preanalisis = ' ';
-    Hashtable<String, Palabra> palabras = new Hashtable<>();
-    private String[] lineasFuente = new String[0];
-    public ArrayList<String> erroresLexicos = new ArrayList<>();
+    
+    private Palabra[] tablaPalabras;
+    private int contadorPalabras = 0;
+    
+    private String[] lineasFuente;
+    
+    private String[] erroresLexicos;
+    private int contadorErrores = 0;
 
-    public void setLineasFuente(String codigo) {
+    public void definirLineasFuente(String codigo) {
         if (codigo != null) {
             this.lineasFuente = codigo.split("\\r?\\n");
         }
     }
 
-    public String obtenerTextoLinea(int n) {
-        if (n > 0 && n <= lineasFuente.length) {
-            return lineasFuente[n - 1];
+    public String obtenerTextoLinea(int numeroLinea) {
+        if (numeroLinea > 0 && numeroLinea <= lineasFuente.length) {
+            return lineasFuente[numeroLinea - 1];
         }
         return "";
     }
 
-    void reservar(Palabra p) {
-        palabras.put(p.lexema, p);
+    private void reservar(Palabra palabra) {
+        tablaPalabras[contadorPalabras++] = palabra;
     }
 
     public AnalizadorLexico() {
+        tablaPalabras = new Palabra[200];
+        erroresLexicos = new String[1000];
+        
         reservar(new Palabra("MODULO", Etiqueta.MODULO));
         reservar(new Palabra("FIN-MODULO", Etiqueta.FIN_MODULO));
         reservar(new Palabra("PRINCIPAL", Etiqueta.PRINCIPAL));
@@ -53,135 +60,168 @@ public class AnalizadorLexico {
         reservar(new Palabra("Y", Etiqueta.Y));
         reservar(new Palabra("O", Etiqueta.O));
         reservar(new Palabra("NO", Etiqueta.NO));
-        reservar(new Palabra("V", Etiqueta.V));
-        reservar(new Palabra("F", Etiqueta.F));
+        reservar(new Palabra("V", Etiqueta.VERDADERO));
+        reservar(new Palabra("F", Etiqueta.FALSO));
         reservar(new Palabra("VARIABLES", Etiqueta.VARIABLES));
         reservar(new Palabra("FIN-VARIABLES", Etiqueta.FIN_VARIABLES));
         reservar(new Palabra("ENTONCES", Etiqueta.ENTONCES));
     }
 
-    void leer() throws IOException {
+    private void avanzar() throws IOException {
         preanalisis = (char) System.in.read();
         columna++;
     }
 
-    boolean leer(char c) throws IOException {
-        leer();
-        if (preanalisis != c)
+    private boolean compararSiguiente(char caracterEsperado) throws IOException {
+        avanzar();
+        if (preanalisis != caracterEsperado) {
             return false;
+        }
         preanalisis = ' ';
         return true;
     }
 
-    public Token escanear() throws IOException {
-        for (;; leer()) {
-            if (preanalisis == ' ' || preanalisis == '\t' || preanalisis == '\r')
+    public SimboloLexico obtenerSiguienteToken() throws IOException {
+        for (;; avanzar()) {
+            if (preanalisis == ' ' || preanalisis == '\t' || preanalisis == '\r') {
                 continue;
-            else if (preanalisis == '\n') {
+            } else if (preanalisis == '\n') {
                 linea = linea + 1;
-                columna = 0; // Se incrementará a 1 en el siguiente leer()
-            } else
+                columna = 0;
+            } else {
                 break;
+            }
         }
 
-        if (preanalisis == (char) -1)
-            return new Token(Etiqueta.EOF, linea, columna);
+        if (preanalisis == (char) -1 || preanalisis == 65535) {
+            return new SimboloLexico(Etiqueta.FIN_ARCHIVO, linea, columna);
+        }
 
-        int colInicio = columna;
+        int columnaDondeInicia = columna;
 
         switch (preanalisis) {
             case '=':
-                if (leer('='))
-                    return new Palabra("==", Etiqueta.IGUALDAD, linea, colInicio);
-                else
-                    return new Token('=', linea, colInicio);
+                if (compararSiguiente('=')) {
+                    return new Palabra("==", Etiqueta.IGUALDAD, linea, columnaDondeInicia);
+                } else {
+                    return new SimboloLexico('=', linea, columnaDondeInicia);
+                }
             case '!':
-                if (leer('='))
-                    return new Palabra("!=", Etiqueta.DIFERENTE, linea, colInicio);
-                else
-                    return new Token('!', linea, colInicio);
+                if (compararSiguiente('=')) {
+                    return new Palabra("!=", Etiqueta.DIFERENTE, linea, columnaDondeInicia);
+                } else {
+                    return new SimboloLexico('!', linea, columnaDondeInicia);
+                }
             case '<':
-                if (leer('='))
-                    return new Palabra("<=", Etiqueta.MENOR_IGUAL, linea, colInicio);
-                else
-                    return new Token('<', linea, colInicio);
+                if (compararSiguiente('=')) {
+                    return new Palabra("<=", Etiqueta.MENOR_IGUAL, linea, columnaDondeInicia);
+                } else {
+                    return new SimboloLexico('<', linea, columnaDondeInicia);
+                }
             case '>':
-                if (leer('='))
-                    return new Palabra(">=", Etiqueta.MAYOR_IGUAL, linea, colInicio);
-                else
-                    return new Token('>', linea, colInicio);
+                if (compararSiguiente('=')) {
+                    return new Palabra(">=", Etiqueta.MAYOR_IGUAL, linea, columnaDondeInicia);
+                } else {
+                    return new SimboloLexico('>', linea, columnaDondeInicia);
+                }
         }
 
         if (Character.isDigit(preanalisis)) {
-            int v = 0;
+            int acumuladorInt = 0;
             do {
-                v = 10 * v + Character.digit(preanalisis, 10);
-                leer();
+                acumuladorInt = 10 * acumuladorInt + Character.digit(preanalisis, 10);
+                avanzar();
             } while (Character.isDigit(preanalisis));
-            if (preanalisis != '.')
-                return new Numero(v, linea, colInicio);
-            float x = v;
-            float d = 10;
-            for (;;) {
-                leer();
-                if (!Character.isDigit(preanalisis))
-                    break;
-                x = x + Character.digit(preanalisis, 10) / d;
-                d = d * 10;
+            
+            if (preanalisis != '.') {
+                return new Numero(acumuladorInt, linea, columnaDondeInicia);
             }
-            return new Real(x, linea, colInicio);
+            
+            float acumuladorFloat = acumuladorInt;
+            float divisor = 10;
+            for (;;) {
+                avanzar();
+                if (!Character.isDigit(preanalisis)) {
+                    break;
+                }
+                acumuladorFloat = acumuladorFloat + (float) Character.digit(preanalisis, 10) / divisor;
+                divisor = divisor * 10;
+            }
+            return new Real(acumuladorFloat, linea, columnaDondeInicia);
         }
 
         if (Character.isLetter(preanalisis) || preanalisis == '_') {
-            StringBuffer b = new StringBuffer();
+            String lexemaConstruido = "";
             do {
-                b.append(preanalisis);
-                leer();
-            } while (Character.isLetterOrDigit(preanalisis) || preanalisis == '-' || preanalisis == '_');
-            String s = b.toString();
-            Palabra p = palabras.get(s);
-            if (p != null) {
-                // Clonamos para ponerle la posición actual sin afectar la reserva global
-                return new Palabra(p.lexema, p.etiqueta, linea, colInicio);
+                lexemaConstruido = lexemaConstruido + preanalisis;
+                avanzar();
+            } while (Character.isLetterOrDigit(preanalisis) || preanalisis == '_');
+            
+            if (lexemaConstruido.equals("FIN") && preanalisis == '-') {
+                lexemaConstruido = lexemaConstruido + preanalisis;
+                avanzar();
+                while (Character.isLetterOrDigit(preanalisis) || preanalisis == '_') {
+                    lexemaConstruido = lexemaConstruido + preanalisis;
+                    avanzar();
+                }
+            }
+            
+            for (int i = 0; i < contadorPalabras; i++) {
+                if (tablaPalabras[i].lexema.equals(lexemaConstruido)) {
+                    return new Palabra(tablaPalabras[i].lexema, tablaPalabras[i].etiqueta, linea, columnaDondeInicia);
+                }
             }
 
-            if (s.matches("^[A-Z][A-Z0-9_-]*$")) {
-                erroresLexicos.add(new AnalizadorSintactico.ManejadorError(linea, colInicio, "LEXICO", 
-                    "Identificador invalido: Mayusculas reservadas para palabras clave ('" + s + "')", 
-                    obtenerTextoLinea(linea)).getMessage());
-                return new Palabra(s, Etiqueta.ID, linea, colInicio);
+            if (!lexemaConstruido.matches("^[a-z_][a-zA-Z0-9_]*$")) {
+                registrarErrorLexico("ERROR LEXICO Linea " + linea + ", Col " + columnaDondeInicia + 
+                    ": Identificador invalido: Debe iniciar con minuscula o guion bajo ('" + lexemaConstruido + "')");
+                return new Palabra(lexemaConstruido, Etiqueta.IDENTIFICADOR, linea, columnaDondeInicia);
             }
 
-            p = new Palabra(s, Etiqueta.ID, linea, colInicio);
-            // No guardar en 'palabras' de reserva para no llenar la tabla de IDs locales con posiciones fijas
-            return p;
+            return new Palabra(lexemaConstruido, Etiqueta.IDENTIFICADOR, linea, columnaDondeInicia);
         }
 
         if (preanalisis == '"') {
-            StringBuffer b = new StringBuffer();
+            String cadenaConstruida = "";
             while (true) {
-                leer();
-                if (preanalisis == '"' || preanalisis == (char) -1)
+                avanzar();
+                if (preanalisis == '"' || preanalisis == (char) -1 || preanalisis == 65535) {
                     break;
-                b.append(preanalisis);
+                }
+                cadenaConstruida = cadenaConstruida + preanalisis;
             }
-            leer();
-            return new Palabra(b.toString(), Etiqueta.CADENA, linea, colInicio);
+            avanzar();
+            return new Palabra(cadenaConstruida, Etiqueta.CADENA, linea, columnaDondeInicia);
         }
 
-        if (esValido(preanalisis)) {
-            Token t = new Token(preanalisis, linea, colInicio);
+        if (esCaracterValido(preanalisis)) {
+            SimboloLexico simboloSimple = new SimboloLexico(preanalisis, linea, columnaDondeInicia);
             preanalisis = ' ';
-            return t;
+            return simboloSimple;
         } else {
-            String errorMsg = "Caracter no permitido: '" + preanalisis + "'";
-            Token t = new Palabra(errorMsg, Etiqueta.ERROR, linea, colInicio);
+            String mensajeError = "Caracter no permitido: '" + preanalisis + "'";
+            SimboloLexico simboloError = new Palabra(mensajeError, Etiqueta.ERROR, linea, columnaDondeInicia);
             preanalisis = ' ';
-            return t;
+            return simboloError;
         }
     }
 
-    private boolean esValido(char c) {
-        return String.valueOf(c).matches("[a-zA-Z0-9+\\-*/%=><!(),\"_]");
+    private void registrarErrorLexico(String mensaje) {
+        if (contadorErrores < erroresLexicos.length) {
+            erroresLexicos[contadorErrores++] = mensaje;
+        }
+    }
+
+    public String[] obtenerErroresLexicos() {
+        String[] resultado = new String[contadorErrores];
+        for (int i = 0; i < contadorErrores; i++) {
+            resultado[i] = erroresLexicos[i];
+        }
+        return resultado;
+    }
+
+    private boolean esCaracterValido(char caracter) {
+        String cadenaCaracter = String.valueOf(caracter);
+        return cadenaCaracter.matches("[a-zA-Z0-9+\\-*/%=><!(),\"_]");
     }
 }

@@ -1,15 +1,10 @@
 package AnalizadorLexico;
 
-public class Numero extends Token {
+public class Numero extends SimboloLexico {
     public final int valor;
 
-    public Numero(int v) {
-        super(Etiqueta.NUM_INT);
-        valor = v;
-    }
-
     public Numero(int v, int linea, int columna) {
-        super(Etiqueta.NUM_INT, linea, columna);
+        super(Etiqueta.NUMERO_ENTERO, linea, columna);
         valor = v;
     }
 

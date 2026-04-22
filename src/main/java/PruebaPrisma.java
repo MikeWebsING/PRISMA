@@ -1,36 +1,37 @@
 import AnalizadorLexico.*;
 import AnalizadorSintactico.*;
-
 import java.io.*;
 
 public class PruebaPrisma {
-    public static void main(String[] args) {
-        String nombreArchivo = "entrada.txt";
-        File archivo = new File(nombreArchivo);
+    public static void main(String[] argumentos) {
+        String rutaArchivo = "entrada.txt";
+        File archivoEntrada = new File(rutaArchivo);
 
-        if (!archivo.exists()) {
+        if (!archivoEntrada.exists()) {
             return;
         }
 
         try {
-            InputStream originalIn = System.in;
-            System.setIn(new FileInputStream(archivo));
+            InputStream entradaOriginal = System.in;
+            System.setIn(new FileInputStream(archivoEntrada));
 
-            AnalizadorLexico lexer = new AnalizadorLexico();
+            AnalizadorLexico lexico = new AnalizadorLexico();
 
             while (true) {
-                Token t = lexer.escanear();
-                if (t.etiqueta == Etiqueta.EOF)
+                SimboloLexico simboloActual = lexico.obtenerSiguienteToken();
+                if (simboloActual.etiqueta == Etiqueta.FIN_ARCHIVO) {
                     break;
+                }
 
-                if (t.etiqueta == Etiqueta.ERROR) {
-                    System.out.println("Error!! Token no Valido " + lexer.linea);
+                if (simboloActual.etiqueta == Etiqueta.ERROR) {
+                    System.out.println("Error: Simbolo no valido en linea " + lexico.linea);
+                } else {
+                    System.out.println("Simbolo encontrado: " + Etiqueta.obtenerNombre(simboloActual.etiqueta));
                 }
             }
 
-            System.setIn(originalIn);
-
-        } catch (Exception e) {
+            System.setIn(entradaOriginal);
+        } catch (Exception excepcion) {
         }
     }
 }

@@ -5,11 +5,11 @@ public class Etiqueta {
             FUNCION = 260, FIN_FUNCION = 261, RETORNA = 262, SI = 263, SINO = 264,
             FIN_SI = 265, PARA = 266, FIN_PARA = 267, MIENTRAS = 268, FIN_MIENTRAS = 269,
             ENTERO = 270, DECIMAL = 271, TEXTO = 272, BOOLEANO = 273, VACIO = 274,
-            IMPRIME = 275, LEER = 276, Y = 277, O = 278, NO = 279, ID = 280,
-            NUM_INT = 281, NUM_DEC = 282, CADENA = 283, V = 284, F = 285,
+            IMPRIME = 275, LEER = 276, Y = 277, O = 278, NO = 279, IDENTIFICADOR = 280,
+            NUMERO_ENTERO = 281, NUMERO_DECIMAL = 282, CADENA = 283, VERDADERO = 284, FALSO = 285,
             IGUALDAD = 286, DIFERENTE = 287, MAYOR_IGUAL = 288, MENOR_IGUAL = 289,
             VARIABLES = 290, FIN_VARIABLES = 291, ENTONCES = 292, ERROR = 293,
-            EOF = -1;
+            FIN_ARCHIVO = -1;
 
     public static String obtenerNombre(int etiqueta) {
         switch (etiqueta) {
@@ -37,12 +37,12 @@ public class Etiqueta {
             case Y: return "Y";
             case O: return "O";
             case NO: return "NO";
-            case ID: return "ID";
-            case NUM_INT: return "NUM_INT";
-            case NUM_DEC: return "NUM_DEC";
+            case IDENTIFICADOR: return "IDENTIFICADOR";
+            case NUMERO_ENTERO: return "NUMERO_ENTERO";
+            case NUMERO_DECIMAL: return "NUMERO_DECIMAL";
             case CADENA: return "CADENA";
-            case V: return "V";
-            case F: return "F";
+            case VERDADERO: return "VERDADERO";
+            case FALSO: return "FALSO";
             case IGUALDAD: return "IGUALDAD (==)";
             case DIFERENTE: return "DIFERENTE (!=)";
             case MAYOR_IGUAL: return "MAYOR_IGUAL (>=)";
@@ -50,7 +50,7 @@ public class Etiqueta {
             case VARIABLES: return "VARIABLES";
             case FIN_VARIABLES: return "FIN-VARIABLES";
             case ENTONCES: return "ENTONCES";
-            case EOF: return "FIN DE ARCHIVO (EOF)";
+            case FIN_ARCHIVO: return "FIN DE ARCHIVO";
             default:
                 if (etiqueta < 256 && etiqueta >= 0) {
                     return "'" + (char) etiqueta + "'";

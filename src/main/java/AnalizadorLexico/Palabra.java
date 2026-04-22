@@ -1,26 +1,26 @@
 package AnalizadorLexico;
 
-public class Palabra extends Token {
+public class Palabra extends SimboloLexico {
     public String lexema = "";
 
-    public Palabra(String s, int etiqueta) {
+    public Palabra(String texto, int etiqueta) {
         super(etiqueta);
-        lexema = s;
+        lexema = texto;
     }
 
-    public Palabra(String s, int etiqueta, int linea, int columna) {
+    public Palabra(String texto, int etiqueta, int linea, int columna) {
         super(etiqueta, linea, columna);
-        lexema = s;
+        lexema = texto;
     }
 
     public String toString() {
         return lexema;
     }
 
-    public static final Palabra and = new Palabra("Y", Etiqueta.Y),
-            or = new Palabra("O", Etiqueta.O),
-            eq = new Palabra("==", Etiqueta.IGUALDAD),
-            ne = new Palabra("!=", Etiqueta.DIFERENTE),
-            le = new Palabra("<=", Etiqueta.MENOR_IGUAL),
-            ge = new Palabra(">=", Etiqueta.MAYOR_IGUAL);
+    public static final Palabra yLogico = new Palabra("Y", Etiqueta.Y),
+            oLogico = new Palabra("O", Etiqueta.O),
+            compararIgualdad = new Palabra("==", Etiqueta.IGUALDAD),
+            compararDiferencia = new Palabra("!=", Etiqueta.DIFERENTE),
+            compararMenorIgual = new Palabra("<=", Etiqueta.MENOR_IGUAL),
+            compararMayorIgual = new Palabra(">=", Etiqueta.MAYOR_IGUAL);
 }

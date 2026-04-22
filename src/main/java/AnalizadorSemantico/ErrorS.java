@@ -1,8 +1,15 @@
 package AnalizadorSemantico;
+
 public class ErrorS {
-    public int l, c;
-    public String k, m;
-    public ErrorS(int l, int c, String k, String m) {
-        this.l = l; this.c = c; this.k = k; this.m = m;
+    public int linea;
+    public int columna;
+    public String clave;
+    public String mensaje;
+
+    public ErrorS(int numLinea, int numColumna, String claveError, String textoMensaje) {
+        this.linea = numLinea;
+        this.columna = numColumna;
+        this.clave = claveError;
+        this.mensaje = textoMensaje;
     }
 }
