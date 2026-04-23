@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISMA | Documentación Oficial</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <div class="fondo-animado">
+        <div class="mancha mancha-1"></div>
+        <div class="mancha mancha-2"></div>
+    </div>
+
+    <header>
+        <h1>PRISMA</h1>
+        <p class="subtitulo">Explora la sintaxis, reglas y potencia del lenguaje PRISMA. Un estándar académico para la teoría de compiladores.</p>
+    </header>
+
+    <main class="contenedor">
+        <!-- SECCIÓN 1: REFERENCIA DE PALABRAS RESERVADAS -->
+        <section id="referencia">
+            <h2>Referencia del Lenguaje</h2>
+            <div class="rejilla-referencia">
+                
+                <!-- Estructura -->
+                <div class="bloque-categoria">
+                    <h3>Estructura y Bloques</h3>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">MODULO</span><span class="equivalencia">class</span></div>
+                        <p class="descripcion">Define el nombre y el inicio del programa.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">VARIABLES</span><span class="equivalencia">fields</span></div>
+                        <p class="descripcion">Bloque global para declarar identificadores.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">PRINCIPAL</span><span class="equivalencia">main</span></div>
+                        <p class="descripcion">Cuerpo principal de ejecución del código.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">FUNCION</span><span class="equivalencia">method</span></div>
+                        <p class="descripcion">Declaración de subrutinas o métodos.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">FIN-...</span><span class="equivalencia">}</span></div>
+                        <p class="descripcion">Cierra bloques (MODULO, SI, PARA, etc.).</p>
+                    </div>
+                </div>
+
+                <!-- Datos -->
+                <div class="bloque-categoria">
+                    <h3>Tipos de Datos</h3>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">ENTERO</span><span class="equivalencia">int</span></div>
+                        <p class="descripcion">Números enteros de 32 bits.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">DECIMAL</span><span class="equivalencia">double</span></div>
+                        <p class="descripcion">Números con punto flotante.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">TEXTO</span><span class="equivalencia">String</span></div>
+                        <p class="descripcion">Cadenas de caracteres alfanuméricos.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">BOOLEANO</span><span class="equivalencia">boolean</span></div>
+                        <p class="descripcion">Valores de verdad (V o F).</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">VACIO</span><span class="equivalencia">void</span></div>
+                        <p class="descripcion">Indica ausencia de retorno en funciones.</p>
+                    </div>
+                </div>
+
+                <!-- Control -->
+                <div class="bloque-categoria">
+                    <h3>Control de Flujo</h3>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">SI / ENTONCES</span><span class="equivalencia">if</span></div>
+                        <p class="descripcion">Evaluación condicional de expresiones.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">SINO</span><span class="equivalencia">else</span></div>
+                        <p class="descripcion">Bloque alternativo si la condición es falsa.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">PARA</span><span class="equivalencia">for</span></div>
+                        <p class="descripcion">Bucle de iteración controlada.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">MIENTRAS</span><span class="equivalencia">while</span></div>
+                        <p class="descripcion">Bucle basado en una condición lógica.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">RETORNA</span><span class="equivalencia">return</span></div>
+                        <p class="descripcion">Devuelve un valor al llamador.</p>
+                    </div>
+                </div>
+
+                <!-- Otros -->
+                <div class="bloque-categoria">
+                    <h3>I/O y Lógica</h3>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">IMPRIME</span><span class="equivalencia">println</span></div>
+                        <p class="descripcion">Muestra información en la consola.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">LEER</span><span class="equivalencia">Scanner</span></div>
+                        <p class="descripcion">Captura entrada del usuario.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">V / F</span><span class="equivalencia">true/false</span></div>
+                        <p class="descripcion">Literales para valores booleanos.</p>
+                    </div>
+                    <div class="item-referencia">
+                        <div class="cabecera-item"><span class="palabra">Y / O / NO</span><span class="equivalencia">&& || !</span></div>
+                        <p class="descripcion">Operadores lógicos fundamentales.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: REGLAS GRAMATICALES -->
+        <section id="reglas">
+            <h2>Reglas de Oro</h2>
+            <div class="bloque-reglas">
+                <div class="regla-card">
+                    <h4>Identificadores</h4>
+                    <p>Todos los nombres de variables y funciones deben comenzar obligatoriamente con una letra <strong>minúscula</strong> o un <strong>guion bajo (_)</strong>.</p>
+                </div>
+                <div class="regla-card">
+                    <h4>Alcance Global</h4>
+                    <p>En PRISMA no existe el alcance local. Todas las variables declaradas son accesibles desde cualquier punto del programa.</p>
+                </div>
+                <div class="regla-card">
+                    <h4>Tipado Estricto</h4>
+                    <p>No se permite la mezcla de tipos en operaciones sin una validación previa. Los tipos deben coincidir exactamente.</p>
+                </div>
+                <div class="regla-card">
+                    <h4>Cierre de Bloques</h4>
+                    <p>Cada estructura (SI, MIENTRAS, PARA) debe cerrarse explícitamente con su etiqueta <strong>FIN-</strong> correspondiente.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: EJEMPLOS -->
+        <section id="ejemplos">
+            <h2>Ejemplos Prácticos</h2>
+            <div class="tarjeta-prisma">
+                <h3>Serie de Fibonacci</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--texto-tenue);">Implementación clásica utilizando ciclos y variables globales.</p>
+                <div class="codigo-bloque">
+                    <span class="token-reservada">MODULO</span> Fibonacci<br>
+                    <span class="token-reservada">VARIABLES</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="token-tipo">ENTERO</span> a = <span class="token-numero">0</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="token-tipo">ENTERO</span> b = <span class="token-numero">1</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="token-tipo">ENTERO</span> temp = <span class="token-numero">0</span><br>
+                    <span class="token-reservada">FIN-VARIABLES</span><br>
+                    <br>
+                    <span class="token-reservada">PRINCIPAL</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="token-reservada">MIENTRAS</span> (a < <span class="token-numero">100</span>)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="token-reservada">IMPRIME</span>(a)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temp = a + b<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a = b<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b = temp<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="token-reservada">FIN-MIENTRAS</span><br>
+                    <span class="token-reservada">FIN-PRINCIPAL</span><br>
+                    <span class="token-reservada">FIN-MODULO</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 PRISMA Language Documentation. Compiladores y Lenguajes I.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

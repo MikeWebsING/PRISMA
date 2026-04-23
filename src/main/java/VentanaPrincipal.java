@@ -5,11 +5,16 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.*;
+import javax.swing.undo.UndoManager;
+import javax.swing.event.UndoableEditListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
 
 public class VentanaPrincipal extends JFrame {
     private JTextArea areaCodigo;
     private JTextArea areaSalida;
     private JButton botonEjecutar;
+    private UndoManager gestorDeshacer;
 
     private final Color COLOR_FONDO = new Color(20, 35, 45);
     private final Color COLOR_PANEL = new Color(30, 50, 60);
@@ -77,6 +82,19 @@ public class VentanaPrincipal extends JFrame {
         areaCodigo.setCaretColor(Color.WHITE);
         areaCodigo.setFont(new Font("Consolas", Font.PLAIN, 16));
         areaCodigo.setMargin(new Insets(10, 10, 10, 10));
+        
+        gestorDeshacer = new UndoManager();
+        areaCodigo.getDocument().addUndoableEditListener(evento -> gestorDeshacer.addEdit(evento.getEdit()));
+        
+        areaCodigo.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK), "deshacerAccion");
+        areaCodigo.getActionMap().put("deshacerAccion", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent evento) {
+                if (gestorDeshacer.canUndo()) {
+                    gestorDeshacer.undo();
+                }
+            }
+        });
 
         JTextArea areaNumerosLinea = new JTextArea();
         areaNumerosLinea.setBackground(COLOR_FONDO);
@@ -128,45 +146,27 @@ public class VentanaPrincipal extends JFrame {
         });
 
         add(panelDivision, BorderLayout.CENTER);
-        areaCodigo.setText(
-            "MODULO SerieNumerica\n" +
-            "    VARIABLES\n" +
-            "        ENTERO n = 0\n" +
-            "        ENTERO aux = 0\n" +
-            "        ENTERO repetir = 1\n" +
-            "    FIN-VARIABLES\n" +
-            "    \n" +
-            "    PRINCIPAL\n" +
-            "        MIENTRAS ( repetir == 1 )\n" +
-            "            IMPRIME ( \"INGRESA UN NUMERO (0-9):\" )\n" +
-            "            LEER ( n )\n" +
-            "            \n" +
-            "            SI ( ( n > 0 ) Y ( n < 9 ) ) ENTONCES\n" +
-            "                SI ( ( n % 2 ) == 0 ) ENTONCES\n" +
-            "                    IMPRIME ( \"SERIE PARES (CICLO PARA):\" )\n" +
-            "                    PARA ( aux = 0, aux <= 9, aux = aux + 1 )\n" +
-            "                        SI ( ( aux % 2 ) == 0 ) ENTONCES\n" +
-            "                            IMPRIME ( aux )\n" +
-            "                        FIN-SI\n" +
-            "                    FIN-PARA\n" +
-            "                SINO\n" +
-            "                    IMPRIME ( \"SERIE IMPARES (CICLO MIENTRAS):\" )\n" +
-            "                    aux = 0\n" +
-            "                    MIENTRAS ( aux <= 9 )\n" +
-            "                        SI ( ( aux % 2 ) != 0 ) ENTONCES\n" +
-            "                            IMPRIME ( aux )\n" +
-            "                        FIN-SI\n" +
-            "                        aux = aux + 1\n" +
-            "                    FIN-MIENTRAS\n" +
-            "                FIN-SI\n" +
-            "            FIN-SI\n" +
-            "            \n" +
-            "            IMPRIME ( \"DESEA REPETIR? (1=SI, 0=NO)\" )\n" +
-            "            LEER ( repetir )\n" +
-            "        FIN-MIENTRAS\n" +
-            "    FIN-PRINCIPAL\n" +
-            "FIN-MODULO"
-        );
+        cargarCodigoInicial();
+    }
+
+    private void cargarCodigoInicial() {
+        File archivo = new File("programa_por_defecto.txt");
+        if (archivo.exists()) {
+            try {
+                BufferedReader lector = new BufferedReader(new FileReader(archivo));
+                StringBuilder contenido = new StringBuilder();
+                String linea;
+                while ((linea = lector.readLine()) != null) {
+                    contenido.append(linea).append("\n");
+                }
+                lector.close();
+                areaCodigo.setText(contenido.toString());
+            } catch (IOException e) {
+                areaCodigo.setText("MODULO Error\nPRINCIPAL\nIMPRIME(\"Error al leer archivo\")\nFIN-PRINCIPAL\nFIN-MODULO");
+            }
+        } else {
+            areaCodigo.setText("MODULO Inicio\nPRINCIPAL\nIMPRIME(\"Crea programa_por_defecto.txt\")\nFIN-PRINCIPAL\nFIN-MODULO");
+        }
     }
 
     private void iniciarProcesoCompilacion() {
@@ -196,40 +196,30 @@ public class VentanaPrincipal extends JFrame {
             areaSalida.append("Fallo en el proceso: " + excepcion.getMessage() + "\n");
         }
 
-        areaSalida.append("--- ANALISIS LEXICO ---\n");
         if (lexico != null) {
             String[] erroresLex = lexico.obtenerErroresLexicos();
             if (erroresLex.length > 0) {
+                areaSalida.append("--- ANALISIS LEXICO ---\n");
                 for (int i = 0; i < erroresLex.length; i++) {
                     areaSalida.append(erroresLex[i] + "\n");
                 }
-            } else {
-                areaSalida.append("Correcto.\n");
             }
         }
 
-        areaSalida.append("\n--- ANALISIS SINTACTICO ---\n");
         if (mensajeErrorSintactico != null) {
+            areaSalida.append("\n--- ANALISIS SINTACTICO ---\n");
             areaSalida.append(mensajeErrorSintactico + "\n");
-        } else {
-            areaSalida.append("Correcto.\n");
         }
 
-        areaSalida.append("\n--- ANALISIS SEMANTICO ---\n");
         if (sintactico != null) {
             String[] listaErroresSem = sintactico.obtenerSemantico().obtenerMensajesDeError();
-            if (listaErroresSem.length == 0) {
-                areaSalida.append("Correcto.\n");
-            } else {
+            if (listaErroresSem.length > 0) {
+                areaSalida.append("\n--- ANALISIS SEMANTICO ---\n");
                 for (int j = 0; j < listaErroresSem.length; j++) {
                     areaSalida.append(listaErroresSem[j] + "\n");
                 }
             }
-        } else {
-            areaSalida.append("No completado.\n");
         }
-        
-        areaSalida.append("\n--- FINALIZADO ---\n");
     }
 
     public static void main(String[] argumentos) {

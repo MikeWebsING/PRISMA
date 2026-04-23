@@ -174,8 +174,8 @@ public class AnalizadorLexico {
 
             if (!lexemaConstruido.matches("^[a-z_][a-zA-Z0-9_]*$")) {
                 registrarErrorLexico("ERROR LEXICO Linea " + linea + ", Col " + columnaDondeInicia + 
-                    ": Identificador invalido: Debe iniciar con minuscula o guion bajo ('" + lexemaConstruido + "')");
-                return new Palabra(lexemaConstruido, Etiqueta.IDENTIFICADOR, linea, columnaDondeInicia);
+                    ": Identificador invalido: '" + lexemaConstruido + "'. Debe iniciar con minuscula o guion bajo.");
+                return new Palabra(lexemaConstruido, Etiqueta.ERROR, linea, columnaDondeInicia);
             }
 
             return new Palabra(lexemaConstruido, Etiqueta.IDENTIFICADOR, linea, columnaDondeInicia);
