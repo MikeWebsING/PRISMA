@@ -1,0 +1,80 @@
+IMPRIME Macro Mensaje
+    Mov Ah, 09h
+    mov dx, offset Mensaje
+    int 21h  
+EndM  
+
+LEER Macro Entrada
+    mov Ah, 0Ah 
+    mov Dx, offset Entrada
+    int 21h    
+EndM 
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+.MODEL SMALL
+
+.CODE
+
+Inicio:
+
+mov Ax, @Data
+mov Ds, Ax
+               
+CLS
+
+IMPRIME Mge1
+LEER N 
+
+IMPRIME Salto
+IMPRIME Salto
+
+mov Si, offset N+2
+mov Bh, byte ptr [Si]
+sub Bh, 30h
+
+mov Ch, Bh
+mov Cl, 1
+
+Ciclo:
+cmp Cl, 10
+ja Fin
+
+mov Al, Ch
+add Al, 30h
+mov Linea, Al
+
+mov Al, Cl
+add Al, 30h
+mov Linea+4, Al
+
+mov Al, Ch
+mul Cl
+add Al, 30h
+mov Linea+8, Al
+
+IMPRIME Linea
+IMPRIME Salto
+
+inc Cl
+jmp Ciclo
+
+Fin:
+mov ax, 4C00h
+int 21h
+
+.DATA  
+                                                                    
+Salto db 10,13,24h
+Mge1 db "Tabla a mostrar (1-10): $"
+
+N db 3, ?, 3 dup (24h)
+Linea db "X * Y = Z$"
+
+.STACK
+END Inicio

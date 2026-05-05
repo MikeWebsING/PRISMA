@@ -1,0 +1,124 @@
+IMPRIME Macro Mensaje
+    Mov Ah, 09h
+    mov dx, offset Mensaje
+    int 21h  
+EndM  
+
+LEER Macro Entrada
+    mov Ah, 0Ah 
+    mov Dx, offset Entrada
+    int 21h    
+EndM 
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+.MODEL SMALL
+
+.CODE
+
+Inicio:
+
+mov Ax, @Data
+mov Ds, Ax
+               
+CLS
+
+IMPRIME Mge1
+LEER Cad1
+
+IMPRIME Salto
+
+IMPRIME Mge2
+LEER Cad2
+
+IMPRIME Salto
+IMPRIME Salto
+
+mov Si, offset Cad1
+add Si, 1
+mov Al, byte ptr [Si]
+
+mov Di, offset Cad2
+add Di, 1
+mov Bl, byte ptr [Di]
+
+cmp Al, Bl
+jb UsaAl
+mov Cl, Bl
+jmp IniciaCiclo
+
+UsaAl:
+mov Cl, Al
+
+IniciaCiclo:
+mov Ch, 0
+mov Si, offset Cad1
+add Si, 2
+mov Di, offset Cad2
+add Di, 2
+
+Ciclo:
+cmp Ch, Cl
+je RevisaLongitud
+
+mov Ah, byte ptr [Si]
+mov Bh, byte ptr [Di]
+
+cmp Ah, Bh
+ja Cad1Mayor
+jb Cad2Mayor
+
+add Si, 1
+add Di, 1
+add Ch, 1
+jmp Ciclo
+
+RevisaLongitud:
+mov Si, offset Cad1
+add Si, 1
+mov Al, byte ptr [Si]
+mov Di, offset Cad2
+add Di, 1
+mov Bl, byte ptr [Di]
+
+cmp Al, Bl
+ja Cad1Mayor
+jb Cad2Mayor
+jmp Iguales
+
+Cad1Mayor:
+IMPRIME MgeMayor
+IMPRIME Cad1+2
+jmp Fin
+
+Cad2Mayor:
+IMPRIME MgeMayor
+IMPRIME Cad2+2
+jmp Fin
+
+Iguales:
+IMPRIME MgeIguales
+jmp Fin
+
+Fin:
+mov ax, 4C00h
+int 21h
+
+.DATA  
+                                                                    
+Salto db 10,13,24h
+Mge1 db "Cadena 1: $"
+Mge2 db "Cadena 2: $"
+MgeIguales db "las cadenas son iguales:$"
+MgeMayor db "la cadena mayor es $"
+
+Cad1 db 50, ?, 50 dup (24h)
+Cad2 db 50, ?, 50 dup (24h)
+
+.STACK
+END Inicio

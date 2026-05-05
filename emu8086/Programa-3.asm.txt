@@ -1,0 +1,128 @@
+;Imprime el mensaje con el servicio 09h
+IMPRIME Macro Mensaje
+      Mov Ah, 09h
+      mov dx, offset Mensaje
+      int 21h     
+EndM
+
+POSICIONA Macro Cadena, Linea  
+    mov Dx, offset Cadena
+    mov Si, Dx
+    add Si, 1          ;Movemos Dx a la direccion del byte 1 
+
+    mov Ah, byte ptr (Si)
+    mov Col, 80
+    sub Col, Ah  
+
+    xor Ax, Ax 
+    mov Al, Col ; Pone a cero Ax o sea Ax=0
+
+    mov Bl, 2
+    div Bl        ;Al contiene el resulatdo de la division o sea la columna 
+    mov Col, Al   ;Contiene la columna 
+     
+
+    mov dh, Linea
+    mov dl, Col
+    mov bh, 0
+    mov ah, 2
+    int 10h
+EndM
+
+LEER Macro Entrada 
+    mov Ah,0Ah
+    mov dx, offset Entrada
+    int 21h  
+EndM 
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+
+.MODEL SMALL
+               ; Define el tamano de memoria
+.CODE 
+               ; indica el inicio del programa
+Inicio:        ; Etiqueta de inicio obligatorio
+
+mov Ax, @Data   ;asignamos direccion   
+mov Ds, Ax      ;al sagmento de datos (DS)
+
+;aqui va el codigo de tu programa 
+;---------------------------- 
+ 
+
+IMPRIME Mge1 
+LEER Nom
+IMPRIME Salto
+IMPRIME Salto
+
+IMPRIME Mge2 
+LEER Dom
+IMPRIME Salto
+IMPRIME Salto
+
+IMPRIME Mge3 
+LEER Tel
+IMPRIME Salto 
+IMPRIME Salto
+
+IMPRIME Mge4 
+LEER Corr
+IMPRIME Salto
+IMPRIME Salto
+
+IMPRIME Mge5 
+LEER Edad
+IMPRIME Salto
+IMPRIME Salto
+
+CLS 
+
+POSICIONA Nom, 5    
+IMPRIME Nom + 2
+
+POSICIONA Dom, 7    
+IMPRIME Dom + 2
+
+POSICIONA Tel, 9    
+IMPRIME Tel + 2
+
+POSICIONA Corr, 11    
+IMPRIME Corr + 2
+
+POSICIONA Edad, 13    
+IMPRIME Edad + 2   
+
+
+;---------------------------- 
+mov ax, 4C00h
+int 21h 
+
+
+.DATA
+  
+;Declaracion de variables 
+Salto db 10,13,24h 
+ 
+Mge1 db "Cual es tu nombre: $"
+Mge2 db "Cual es tu domicilio: $"
+Mge3 db "Cual es tu telefono: $"
+Mge4 db "Cual es tu correo: $"
+Mge5 db "Cual es tu edad: $"
+
+
+Nom db 20,?,20 dup (24h)
+Dom db 20,?,20 dup (24h)
+Tel db 20,?,20 dup (24h)
+Corr db 20,?,20 dup (24h)
+Edad db 20,?,20 dup (24h)
+Fila db 2 dup(24h)
+Col db 2 dup (24h)
+
+.STACK
+END Inicio

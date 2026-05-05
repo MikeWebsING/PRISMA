@@ -1,0 +1,203 @@
+; Imprime mensaje con el servicio 09h
+IMPRIME Macro Mensaje
+    Mov Ah, 09h
+    mov dx, offset Mensaje
+    int 21h  
+EndM 
+
+POSICIONA Macro Cadena, Linea  
+    mov Dx, offset Cadena
+    mov Si, Dx
+    add Si, 1 ; Movemos Dx a la direccion del byte 1
+    
+    mov Ah, byte ptr (Si)   
+    mov Col, 80
+    sub Col, Ah
+
+    xor Ax, Ax  ;Pone a cero Ax o sea Ax=0
+    mov Al, Col ;Pasamos valor de Col a Ax
+
+    mov Bl, 2   ;Al contiene el resultado de la division o sea la columna donde quiero imprimir
+    div Bl      
+    mov Col, Al ;Col contiene la columna
+   
+
+    mov dh, Linea
+    mov dl, Col
+    mov bh, 0
+    mov ah, 2
+    int 10h     
+    
+EndM 
+
+LEER Macro Entrada
+    mov Ah, 0Ah 
+    mov Dx, offset Entrada ;Dx contiene la direccion de la variable Nom
+    int 21h    
+EndM 
+
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+
+.MODEL SMALL   ; Define el tamano de memoria   
+
+.CODE          ; indica el inicio del programa
+
+Inicio:        ; Etiqueta de inicio obligatorio 
+
+
+mov Ax, @Data   ;asignamos direccion   
+mov Ds, Ax      ;al sagmento de datos (DS) 
+
+CicloInicio:
+CLS
+IMPRIME Mge1
+LEER A           
+IMPRIME Salto
+IMPRIME Mge2
+LEER B
+IMPRIME Salto 
+IMPRIME Mge6
+LEER C
+IMPRIME Salto
+  
+xor Ax, Ax
+mov Ah, [A+2]
+mov Al, [B+2] 
+
+mov al, [A+2]
+mov bl, [B+2]
+mov cl, [C+2]
+
+
+cmp al, bl
+jne RevisarAB
+cmp al, cl
+jne RevisarAB
+jmp TodosIguales
+
+
+RevisarAB:
+cmp al, bl
+jne RevisarAC
+cmp al, cl
+ja ABMayor
+jb ABMenor
+
+RevisarAC:
+cmp al, cl
+jne RevisarBC
+cmp al, bl
+ja ACMayor
+jb ACMenor
+
+RevisarBC:
+cmp bl, cl
+jne RevisarMayor
+cmp bl, al
+ja BCMayor
+jb BCMenor
+
+RevisarMayor:
+cmp al, bl
+ja A_Mayor
+jb B_Mayor
+
+A_Mayor:
+cmp al, cl
+ja ImprimeA
+jmp ImprimeC
+
+B_Mayor:
+cmp bl, cl
+ja ImprimeB
+jmp ImprimeC
+
+ImprimeA:
+IMPRIME Mge3
+jmp Fin
+
+ImprimeB:
+IMPRIME Mge4
+jmp Fin
+
+ImprimeC:
+IMPRIME Mge7
+jmp Fin
+
+ABMayor:
+IMPRIME Mge9
+jmp Fin
+
+ABMenor:
+IMPRIME Mge8
+jmp Fin
+
+ACMayor:
+IMPRIME Mge11
+jmp Fin
+
+ACMenor:
+IMPRIME Mge10
+jmp Fin
+
+BCMayor:
+IMPRIME Mge13
+jmp Fin
+
+BCMenor:
+IMPRIME Mge12
+jmp Fin
+
+TodosIguales:
+IMPRIME Mge5
+jmp Fin 
+
+Fin:
+ 
+IMPRIME Salto
+IMPRIME Mge14
+LEER R   
+xor Ax, Ax
+mov Ah,[R+2]
+mov Al, "S"
+cmp Ah, Al
+je CicloInicio                                                             
+mov ax, 4C00h
+int 21h      
+
+
+.DATA  
+                                                                
+Salto db 10,13,24h
+ 
+Mge1 db "Valor de A:  $" 
+Mge2 db "Valor de B:  $"
+Mge6 db "Valor de C:  $"
+Mge3 db "El mayor es A  $"
+Mge4 db "El mayor es B  $"
+Mge7 db "El mayor es C  $"
+Mge5 db "Son iguales $" 
+Mge9 db "A es igual a B pero C es menor $"
+Mge8 db "A es igual a B pero C es mayor $"
+Mge11 db "A es igual a C pero B es menor $"
+Mge10 db "A es igual a C pero B es mayor $"
+Mge13 db "B es igual a C pero A menor $"
+Mge12 db "B es igual a C pero A es mayor $"
+Mge14 db "[S] para continuar $"
+
+A db 5,?,5 dup (24h)
+B db 5,?,5 dup (24h)
+C db 5,?,5 dup (24h)
+R db 5,?,5 dup (24h)
+Col db 2 dup (24h)
+
+
+.STACK
+END Inicio

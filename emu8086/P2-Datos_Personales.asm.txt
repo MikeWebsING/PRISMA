@@ -1,0 +1,51 @@
+       .MODEL SMALL; Define el tamano de memoria
+.CODE       ; Indica el inicio del programa
+Inicio:     ; Etiqueta de inicio obligatorio
+
+mov Ax, @Data; Asignamos direccion al segmento  Ax = @Data
+mov Ds, Ax; de datos (Ds)                       Ds = Ax+
+
+; Aqui va el codigo de tu programa  
+input:
+DH = row.
+DL = column.
+BH = page number (0..7).
+
+mov Dh
+
+mov Ah, 09h
+mov Dx, offset mge
+int 21h
+
+mov Ah, 09h
+mov Dx, offset mge1
+int 21h
+
+mov Ah, 09h
+mov Dx, offset mge2
+int 21h
+
+mov Ah, 09h
+mov Dx, offset mge3
+int 21h
+
+mov Ah, 09h
+mov Dx, offset mge4
+int 21h
+
+
+mov Ax, 4C00h
+int 21h
+
+.DATA
+
+; Declaracion de variables
+mge db "Nombre: Jose Miguel Macias Mendoza", 10,13
+mge1    db "Carrera: Ingenieria en Sistemas Computacionales", 0Ah,0Dh
+mge2    db "Numero de Control: 23630159", 0Ah,0Dh 
+mge3    db "Fecha de nacimiento: 04 de Diciembre de 1994", 0Ah,0Dh
+mge4    db "Domicilio: Perla 31 Fracc. Solidaridad$", "$"
+
+
+.STACK
+END Inicio

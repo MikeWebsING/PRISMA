@@ -1,34 +1,41 @@
-MODULO ej_num
+MODULO CalculoPoligonos
+
 VARIABLES
-    ENTERO num = 0
-    ENTERO seguir = 1
-    ENTERO i = 0
+  DECIMAL resultado
 FIN-VARIABLES
 
+FUNCION DECIMAL calcularArea(TEXTO tipo, DECIMAL base, DECIMAL altura)
+  DECIMAL area
+  
+  SI (tipo == "TRIANGULO") ENTONCES
+    area = (base * altura) / 2.0
+  FIN-SI
+  
+  SI (tipo == "CUADRADO") ENTONCES
+    area = base * base
+  FIN-SI
+  
+  SI (tipo == "RECTANGULO") ENTONCES
+    area = base * altura
+  FIN-SI
+  
+  RETORNA area
+FIN-FUNCION
+
 PRINCIPAL
-    MIENTRAS ( seguir == 1 )
-        IMPRIME ( "Ingrese un numero entre 0 y 9:" )
-        LEER ( num )
-
-        SI ( num == 0 O num == 9 ) ENTONCES
-        SINO
-            SI ( num % 2 == 0 ) ENTONCES
-                IMPRIME ( "Numeros pares:" )
-                PARA ( i = 0 , i <= 9 , i = i + 2 )
-                    IMPRIME ( i )
-                FIN-PARA
-            SINO
-                IMPRIME ( "Numeros impares:" )
-                i = 1
-                MIENTRAS ( i <= 9 )
-                    IMPRIME ( i )
-                    i = i + 2
-                FIN-MIENTRAS
-            FIN-SI
-        FIN-SI
-
-        IMPRIME ( "Ejecutar de nuevo? (1=Si, 0=No)" )
-        LEER ( seguir )
-    FIN-MIENTRAS
+  IMPRIME("--- CALCULADORA DE AREAS ---")
+  
+  IMPRIME("Area del Triangulo (base 10, altura 5):")
+  resultado = calcularArea("TRIANGULO", 10.0, 5.0)
+  IMPRIME(resultado)
+  
+  IMPRIME("Area del Cuadrado (lado 4):")
+  resultado = calcularArea("CUADRADO", 4.0, 4.0)
+  IMPRIME(resultado)
+  
+  IMPRIME("Area del Rectangulo (base 8, altura 3):")
+  resultado = calcularArea("RECTANGULO", 8.0, 3.0)
+  IMPRIME(resultado)
 FIN-PRINCIPAL
+
 FIN-MODULO

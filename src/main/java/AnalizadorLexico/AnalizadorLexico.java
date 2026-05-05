@@ -139,13 +139,20 @@ public class AnalizadorLexico {
             
             float acumuladorFloat = acumuladorInt;
             float divisor = 10;
+            boolean tieneFraccion = false;
             for (;;) {
                 avanzar();
                 if (!Character.isDigit(preanalisis)) {
                     break;
                 }
+                tieneFraccion = true;
                 acumuladorFloat = acumuladorFloat + (float) Character.digit(preanalisis, 10) / divisor;
                 divisor = divisor * 10;
+            }
+            if (!tieneFraccion) {
+                registrarErrorLexico("ERROR LEXICO Linea " + linea + ", Col " + columnaDondeInicia + 
+                    ": Numero decimal incompleto. Se esperaba al menos un digito despues del punto.");
+                return new Palabra(".", Etiqueta.ERROR, linea, columnaDondeInicia);
             }
             return new Real(acumuladorFloat, linea, columnaDondeInicia);
         }
@@ -185,13 +192,19 @@ public class AnalizadorLexico {
             String cadenaConstruida = "";
             while (true) {
                 avanzar();
-                if (preanalisis == '"' || preanalisis == (char) -1 || preanalisis == 65535) {
+                if (preanalisis == '"' || preanalisis == '\n' || preanalisis == '\r' || preanalisis == (char) -1 || preanalisis == 65535) {
                     break;
                 }
                 cadenaConstruida = cadenaConstruida + preanalisis;
             }
-            avanzar();
-            return new Palabra(cadenaConstruida, Etiqueta.CADENA, linea, columnaDondeInicia);
+            if (preanalisis == '"') {
+                avanzar();
+                return new Palabra(cadenaConstruida, Etiqueta.CADENA, linea, columnaDondeInicia);
+            } else {
+                registrarErrorLexico("ERROR LEXICO Linea " + linea + ", Col " + columnaDondeInicia + 
+                    ": Cadena no cerrada o contiene saltos de linea.");
+                return new Palabra(cadenaConstruida, Etiqueta.ERROR, linea, columnaDondeInicia);
+            }
         }
 
         if (esCaracterValido(preanalisis)) {

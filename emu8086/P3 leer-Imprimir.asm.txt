@@ -1,0 +1,69 @@
+.MODEL SMALL   ; Define el tamano de memoria   
+
+.CODE          ; indica el inicio del programa
+
+Inicio:        ; Etiqueta de inicio obligatorio
+
+mov Ax, @Data   ;asignamos direccion   
+mov Ds, Ax      ;al sagmento de datos (DS)
+
+;aqui va el codigo de tu programa 
+;----------------------------
+mov Ah, 09h
+mov dx, offset Mge1
+int 21h
+
+mov Ah, 0Ah 
+mov dx, offset Nom ;Dx contiene la direccion de la variable Nom
+int 21h  
+
+mov Si, Dx
+add Si, 1 ; Movemos Dx a la direccion del byte 1
+   
+   
+mov Ah, byte ptr (Si)   
+mov Col, 80
+sub Col, Ah
+
+xor Ax, Ax  ;Pone a cero Ax o sea Ax=0
+mov Al, Col ;Pasamos valor de Col a Ax
+
+mov Bl, 2   ;Al contiene el resultado de la division o sea la columna donde quiero imprimir
+div Bl      
+mov Col, Al ;Col contiene la columna
+
+mov Ah, 09h
+mov dx, offset Salto
+int 21h   
+
+mov Fila, 5
+
+mov dh, Fila
+mov dl, Col
+mov bh, 0
+mov ah, 2
+int 10h
+
+mov Ah, 09h
+mov dx, offset Nom+2
+int 21h 
+
+
+                                                                                         
+;----------------------------                                                               
+mov ax, 4C00h
+int 21h
+
+.DATA  
+;Declaracion de variables                                                                
+Salto db 10,13,24h
+ 
+Mge1 db "Cual es tu nombre:  $"
+
+Nom db 20,?,20 dup (24h)
+Fila db 2 dup (24h)
+Col db 2 dup (24h)
+
+
+.STACK
+END Inicio

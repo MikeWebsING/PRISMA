@@ -1,0 +1,74 @@
+.MODEL SMALL
+
+.CODE
+Inicio:
+mov ax, @Data
+mov ds, ax
+
+; codigo aquí  
+;-----------------
+
+mov Dh,03
+mov Dl,30
+mov Bh,0
+mov Ah, 02  
+int 10h
+
+mov Ah, 09h
+mov Dx, offset mge
+int 21h  
+
+mov Dh,06
+mov Dl,27
+mov Bh,0
+mov Ah, 02  
+int 10h  
+ 
+mov Ah, 09h
+mov Dx, offset mge1
+int 21h
+
+mov Dh,09
+mov Dl,36
+mov Bh,0
+mov Ah, 02  
+int 10h
+
+mov Ah, 09h
+mov Dx, offset mge2
+int 21h 
+
+mov Dh,12
+mov Dl,33
+mov Bh,0
+mov Ah, 02  
+int 10h
+
+mov Ah, 09h
+mov Dx, offset mge3
+int 21h
+
+mov Dh,15
+mov Dl,25
+mov Bh,0
+mov Ah, 02  
+int 10h
+
+mov Ah, 09h
+mov Dx, offset mge4
+int 21h    
+
+;--------------------  
+mov ax, 4C00h
+int 21h      
+    
+.DATA
+; variables aquí
+mge  db "Nombre: Jose Miguel",24h
+mge1 db "Apellidos: Macias Mendoza",36 
+mge2 db "Edad: 31",36
+mge3 db "Sexo: Masculino",0Ah,0Dh,36
+mge4 db "Direccion: Perla 31, Solidaridad" ,24h
+    
+.STACK
+END Inicio

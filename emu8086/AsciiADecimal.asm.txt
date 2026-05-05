@@ -1,0 +1,69 @@
+IMPRIME Macro Mensaje
+    Mov Ah, 09h
+    mov dx, offset Mensaje
+    int 21h
+EndM
+
+LEER Macro Entrada
+    mov Ah, 0Ah
+    mov Dx, offset Entrada
+    int 21h
+EndM
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+.MODEL SMALL
+
+.CODE
+
+Inicio:
+
+mov Ax, @Data
+mov Ds, Ax
+
+CLS
+
+IMPRIME Mge1
+LEER Dato
+
+mov Si, offset Dato + 2
+mov Al, [Si]
+
+mov byte ptr [As1], Al
+sub Al, 30h
+mov Val, Al
+
+IMPRIME Salto
+
+IMPRIME Mge2
+IMPRIME As1
+
+IMPRIME Salto
+
+IMPRIME Mge3
+mov Al, Val
+add Al, 30h
+mov byte ptr [Res], Al
+IMPRIME Res
+
+mov Ax, 4C00h
+int 21h
+
+.DATA
+
+Salto db 10,13,24h
+Mge1 db "Ingresa un numero (0-9): $"
+Mge2 db "Caracter ASCII: $"
+Mge3 db "Valor Decimal: $"
+Dato db 3, ?, 3 dup (24h)
+As1 db " $"
+Val db ?
+Res db " $"
+
+.STACK
+END Inicio

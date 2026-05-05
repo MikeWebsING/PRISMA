@@ -1,0 +1,162 @@
+IMPRIME Macro Mensaje
+    Mov Ah, 09h
+    mov dx, offset Mensaje
+    int 21h  
+EndM  
+
+LEER Macro Entrada
+    mov Ah, 0Ah 
+    mov Dx, offset Entrada
+    int 21h    
+EndM 
+
+CLS Macro
+    Mov Ah, 0Fh
+    int 10h
+    Mov Ah, 0h
+    int 10h
+EndM
+
+.MODEL SMALL
+
+.CODE
+
+Inicio:
+
+mov Ax, @Data
+mov Ds, Ax
+               
+CLS
+
+IMPRIME Mge1
+LEER A 
+
+IMPRIME Salto
+
+IMPRIME Mge2
+LEER B
+IMPRIME Salto
+IMPRIME Salto
+
+mov Si, offset A+2
+mov Bh, byte ptr [Si]
+mov Di, offset B+2
+mov Bl, byte ptr [Di]
+
+mov Ch, Bh
+sub Ch, 30h
+mov Cl, Bl
+sub Cl, 30h
+
+xor Ax, Ax
+
+mov Mge3, Bh
+mov Mge3+4, Bl
+
+mov Al, Ch
+add Al, Cl
+add Al, 30h
+
+mov Mge3+8, Al
+IMPRIME Mge3
+IMPRIME Salto
+
+xor Ax, Ax
+
+mov Mge4, Bh
+mov Mge4+4, Bl
+
+mov Al, Ch
+sub Al, Cl
+add Al, 30h
+
+mov Mge4+8, Al
+IMPRIME Mge4
+IMPRIME Salto
+
+xor Ax, Ax
+
+mov Mge5, Bh
+mov Mge5+4, Bl
+
+mov Al, Ch
+mul Cl
+add Al, 30h
+
+mov Mge5+8, Al    
+IMPRIME Mge5
+IMPRIME Salto
+
+xor Ax, Ax
+
+mov Mge6, Bh
+mov Mge6+4, Bl
+
+mov Al, Ch
+mov Ah, 0
+div Cl
+
+add Al, 30h
+mov Mge6+8, Al
+IMPRIME Mge6
+IMPRIME Salto
+
+xor Ax, Ax
+
+mov Mge7, Bh
+mov Mge7+4, Bl
+
+mov Al, Ch
+mov Ah, 0
+div Cl
+
+add Ah, 30h
+mov Mge7+8, Ah
+IMPRIME Mge7
+IMPRIME Salto
+
+xor Ax, Ax
+
+mov Mge8, Bh
+mov Mge8+4, Bl
+
+mov Al, 1
+mov Dl, Cl
+
+cmp Dl, 0
+je FinExp
+
+CicloExp:
+mul Ch
+sub Dl, 1
+cmp Dl, 0
+ja CicloExp
+
+FinExp:
+add Al, 30h
+mov Mge8+8, Al
+IMPRIME Mge8
+IMPRIME Salto
+
+mov ax, 4C00h
+int 21h
+
+.DATA  
+                                                                    
+Salto db 10,13,24h
+
+Mge1 db "Valor de A: $"
+Mge2 db "Valor de B: $"
+Mge3 db "X + Y = W$"
+Mge4 db "X - Y = W$"
+Mge5 db "X * Y = W$"
+Mge6 db "X / Y = W$"
+Mge7 db "X \ Y = W$"
+Mge8 db "X ^ Y = W$"
+                                
+A db 3, ?, 3 dup (24h)
+B db 3, ?, 3 dup (24h)
+R db 3, ?, 3 dup (24h)
+
+.STACK
+END Inicio

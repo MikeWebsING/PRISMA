@@ -1,0 +1,26 @@
+.MODEL SMALL; Define el tamano de memoria
+.CODE       ; Indica el inicio del programa
+Inicio:     ; Etiqueta de inicio obligatorio
+
+mov Ax, @Data; Asignamos direccion al segmento  Ax = @Data
+mov Ds, Ax; de datos (Ds)                       Ds = Ax+
+
+; Aqui va el codigo de tu programa
+
+mov Ah, 09h
+mov Dx, offset mge
+int 21h
+
+
+mov Ax, 4C00h
+int 21h
+
+.DATA
+
+; Declaracion de variables
+mge db "Hola mundo", 0Ah,0Dh
+    db "Cruel y despiadado", 24h
+
+
+.STACK
+END Inicio
