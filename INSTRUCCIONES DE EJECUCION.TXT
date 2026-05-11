@@ -1,3 +1,8 @@
 En la terminal y ruta de este proyecto ejecutar el comando:
 
 java -cp target\classes VentanaPrincipal
+
+o tambien ejecutar el archivo src\main\java\VentanaPrincipal.java este abrira una ventana 
+con el codigo ya predefinido. dicho codigo se puede introducir manualmente y directamente
+en la ventana del IDE que se ejecuta o tamebien al editar el archivo de programa_por_defecto.txt automaticamente
+muestra ese contenido al ejecutar el src\main\java\VentanaPrincipal.java

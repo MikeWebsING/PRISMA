@@ -220,6 +220,36 @@ public class VentanaPrincipal extends JFrame {
                 }
             }
         }
+
+        boolean sinErroresLexicos = (lexico != null && lexico.obtenerErroresLexicos().length == 0);
+        boolean sinErroresSintacticos = (mensajeErrorSintactico == null);
+        boolean sinErroresSemanticos = (sintactico != null && sintactico.obtenerSemantico().obtenerMensajesDeError().length == 0);
+
+        if (sinErroresLexicos && sinErroresSintacticos && sinErroresSemanticos) {
+            areaSalida.append("\n>>> COMPILACION EXITOSA <<<\n");
+            generarCodigoEnsamblador(contenidoCodigo);
+        } else {
+            areaSalida.append("\n>>> COMPILACION FALLIDA: No se genero codigo ensamblador <<<\n");
+        }
+    }
+
+    private void generarCodigoEnsamblador(String codigo) {
+        try {
+            String resultadoAsm = Generador.traducir(codigo);
+
+            File carpetaTemporal = new File("temporal");
+            if (!carpetaTemporal.exists()) {
+                carpetaTemporal.mkdir();
+            }
+
+            FileWriter escritor = new FileWriter("temporal/programa.asm");
+            escritor.write(resultadoAsm);
+            escritor.close();
+
+            areaSalida.append("\n[SISTEMA] Codigo ensamblador generado en: temporal/programa.asm\n");
+        } catch (Exception error) {
+            areaSalida.append("\n[ERROR] Fallo al generar el archivo .asm: " + error.getMessage() + "\n");
+        }
     }
 
     public static void main(String[] argumentos) {

@@ -1,41 +1,30 @@
-MODULO CalculoPoligonos
-
+MODULO programa_defecto
 VARIABLES
-  DECIMAL resultado
+    ENTERO a
+    ENTERO b
+    ENTERO c
+    ENTERO r
 FIN-VARIABLES
-
-FUNCION DECIMAL calcularArea(TEXTO tipo, DECIMAL base, DECIMAL altura)
-  DECIMAL area
-  
-  SI (tipo == "TRIANGULO") ENTONCES
-    area = (base * altura) / 2.0
-  FIN-SI
-  
-  SI (tipo == "CUADRADO") ENTONCES
-    area = base * base
-  FIN-SI
-  
-  SI (tipo == "RECTANGULO") ENTONCES
-    area = base * altura
-  FIN-SI
-  
-  RETORNA area
-FIN-FUNCION
-
 PRINCIPAL
-  IMPRIME("--- CALCULADORA DE AREAS ---")
-  
-  IMPRIME("Area del Triangulo (base 10, altura 5):")
-  resultado = calcularArea("TRIANGULO", 10.0, 5.0)
-  IMPRIME(resultado)
-  
-  IMPRIME("Area del Cuadrado (lado 4):")
-  resultado = calcularArea("CUADRADO", 4.0, 4.0)
-  IMPRIME(resultado)
-  
-  IMPRIME("Area del Rectangulo (base 8, altura 3):")
-  resultado = calcularArea("RECTANGULO", 8.0, 3.0)
-  IMPRIME(resultado)
-FIN-PRINCIPAL
+    IMPRIME("VALOR DE A: ")
+    LEER(a)
+    IMPRIME("VALOR DE B: ")
+    LEER(b)
+    c = a + b
+    IMPRIME("LA SUMA ES: ")
+    IMPRIME(c)
+    c = a - b
+    IMPRIME("LA RESTA ES: ")
+    IMPRIME(c)
+    c = a * b
+    IMPRIME("LA MULTIPLICACION ES: ")
+    IMPRIME(c)
+    c = a / b
+    IMPRIME("LA DIVISION ES: ")
 
+    IMPRIME(c)
+    r = a % b
+    IMPRIME("EL RESIDUO ES: ")
+    IMPRIME(r)
+FIN-PRINCIPAL
 FIN-MODULO
