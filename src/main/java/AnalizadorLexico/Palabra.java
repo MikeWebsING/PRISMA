@@ -1,26 +1,42 @@
 package AnalizadorLexico;
 
 public class Palabra extends SimboloLexico {
-    public String lexema = "";
+    private char[] lexema;
 
-    public Palabra(String texto, int etiqueta) {
+    public Palabra(char[] lexema, int etiqueta) {
         super(etiqueta);
-        lexema = texto;
+        this.lexema = lexema;
     }
 
-    public Palabra(String texto, int etiqueta, int linea, int columna) {
+    public Palabra(char[] lexema, int etiqueta, int linea, int columna) {
         super(etiqueta, linea, columna);
-        lexema = texto;
+        this.lexema = lexema;
     }
 
-    public String toString() {
-        return lexema;
+    public char[] getLexema() {
+        return this.lexema;
     }
 
-    public static final Palabra yLogico = new Palabra("Y", Etiqueta.Y),
-            oLogico = new Palabra("O", Etiqueta.O),
-            compararIgualdad = new Palabra("==", Etiqueta.IGUALDAD),
-            compararDiferencia = new Palabra("!=", Etiqueta.DIFERENTE),
-            compararMenorIgual = new Palabra("<=", Etiqueta.MENOR_IGUAL),
-            compararMayorIgual = new Palabra(">=", Etiqueta.MAYOR_IGUAL);
+    public void setLexema(char[] lexema) {
+        this.lexema = lexema;
+    }
+
+    public boolean esIgualA(char[] comparacion) {
+        if (this.lexema.length != comparacion.length) {
+            return false;
+        }
+        for (int i = 0; i < this.lexema.length; i++) {
+            if (this.lexema[i] != comparacion[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static final Palabra yLogico = new Palabra(new char[]{'Y'}, Etiqueta.Y);
+    public static final Palabra oLogico = new Palabra(new char[]{'O'}, Etiqueta.O);
+    public static final Palabra compararIgualdad = new Palabra(new char[]{'=','='}, Etiqueta.IGUALDAD);
+    public static final Palabra compararDiferencia = new Palabra(new char[]{'!','='}, Etiqueta.DIFERENTE);
+    public static final Palabra compararMenorIgual = new Palabra(new char[]{'<','='}, Etiqueta.MENOR_IGUAL);
+    public static final Palabra compararMayorIgual = new Palabra(new char[]{'>','='}, Etiqueta.MAYOR_IGUAL);
 }

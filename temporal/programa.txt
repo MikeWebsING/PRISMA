@@ -1,0 +1,16 @@
+MODULO prueba_anidado
+VARIABLES
+    ENTERO a
+    ENTERO b
+FIN-VARIABLES
+PRINCIPAL
+    a = 5
+    b = 3
+    SI (a > b)
+        IMPRIME("A ES MAYOR")
+        SI (b == 3)
+            IMPRIME("B ES TRES")
+        FIN-SI
+    FIN-SI
+FIN-PRINCIPAL
+FIN-MODULO

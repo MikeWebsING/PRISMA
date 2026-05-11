@@ -11,7 +11,7 @@ public class PruebaErrores {
             System.setIn(flujoEntrada);
 
             AnalizadorLexico lexico = new AnalizadorLexico();
-            lexico.definirLineasFuente(codigoPrueba);
+            lexico.definirLineasFuente(codigoPrueba.toCharArray());
             AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
 
             sintactico.iniciarAnalisis();

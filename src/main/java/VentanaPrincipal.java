@@ -187,7 +187,7 @@ public class VentanaPrincipal extends JFrame {
             System.setIn(flujoEntrada);
 
             lexico = new AnalizadorLexico();
-            lexico.definirLineasFuente(contenidoCodigo);
+            lexico.definirLineasFuente(contenidoCodigo.toCharArray());
             sintactico = new AnalizadorSintactico(lexico);
             sintactico.iniciarAnalisis();
         } catch (ManejadorError errorCapturado) {
@@ -197,11 +197,11 @@ public class VentanaPrincipal extends JFrame {
         }
 
         if (lexico != null) {
-            String[] erroresLex = lexico.obtenerErroresLexicos();
-            if (erroresLex.length > 0) {
+            char[][] erroresLexChar = lexico.obtenerErroresLexicos();
+            if (erroresLexChar.length > 0) {
                 areaSalida.append("--- ANALISIS LEXICO ---\n");
-                for (int i = 0; i < erroresLex.length; i++) {
-                    areaSalida.append(erroresLex[i] + "\n");
+                for (int i = 0; i < erroresLexChar.length; i++) {
+                    areaSalida.append(new String(erroresLexChar[i]) + "\n");
                 }
             }
         }
@@ -235,7 +235,8 @@ public class VentanaPrincipal extends JFrame {
 
     private void generarCodigoEnsamblador(String codigo) {
         try {
-            String resultadoAsm = Generador.traducir(codigo);
+            char[] resultadoAsmChars = Generador.traducir(codigo.toCharArray());
+            String resultadoAsm = new String(resultadoAsmChars);
 
             File carpetaTemporal = new File("temporal");
             if (!carpetaTemporal.exists()) {

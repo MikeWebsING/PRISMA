@@ -1,14 +1,18 @@
 package AnalizadorLexico;
 
 public class Numero extends SimboloLexico {
-    public final int valor;
+    private int valor;
 
-    public Numero(int v, int linea, int columna) {
+    public Numero(int valor, int linea, int columna) {
         super(Etiqueta.NUMERO_ENTERO, linea, columna);
-        valor = v;
+        this.valor = valor;
     }
 
-    public String toString() {
-        return "" + valor;
+    public int getValor() {
+        return this.valor;
+    }
+
+    public void setValor(int valor) {
+        this.valor = valor;
     }
 }

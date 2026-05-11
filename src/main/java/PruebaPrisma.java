@@ -24,9 +24,9 @@ public class PruebaPrisma {
                 }
 
                 if (simboloActual.etiqueta == Etiqueta.ERROR) {
-                    System.out.println("Error: Simbolo no valido en linea " + lexico.linea);
+                    System.out.println("Error: Simbolo no valido en linea " + simboloActual.linea);
                 } else {
-                    System.out.println("Simbolo encontrado: " + Etiqueta.obtenerNombre(simboloActual.etiqueta));
+                    System.out.println("Simbolo encontrado: " + new String(Etiqueta.obtenerNombre(simboloActual.etiqueta)));
                 }
             }
 

@@ -6,37 +6,41 @@ public class Semantico {
     private SimboloS[] tablaSimbolos;
     private int contadorSimbolos = 0;
     
-    private String[] listaErrores;
+    private char[][] listaErrores;
     private int contadorErrores = 0;
     private boolean retornoDetectado = false;
-    private String tipoFuncionActual = null;
+    private char[] tipoFuncionActual = null;
     private boolean dentroDeFuncion = false;
-    private static final String[] PALABRAS_RESERVADAS = {
-        "MODULO", "VARIABLES", "FIN-VARIABLES", "PRINCIPAL", "FIN-PRINCIPAL",
-        "FUNCION", "FIN-FUNCION", "RETORNA", "SI", "ENTONCES", "SINO", "FIN-SI",
-        "PARA", "FIN-PARA", "MIENTRAS", "FIN-MIENTRAS", "ENTERO", "DECIMAL",
-        "TEXTO", "BOOLEANO", "VACIO", "IMPRIME", "LEER", "Y", "O", "NO", "V", "F"
+
+    private static final char[][] PALABRAS_RESERVADAS = {
+        {'M','O','D','U','L','O'}, {'V','A','R','I','A','B','L','E','S'}, {'F','I','N','-','V','A','R','I','A','B','L','E','S'},
+        {'P','R','I','N','C','I','P','A','L'}, {'F','I','N','-','P','R','I','N','C','I','P','A','L'},
+        {'F','U','N','C','I','O','N'}, {'F','I','N','-','F','U','N','C','I','O','N'},
+        {'R','E','T','O','R','N','A'}, {'S','I'}, {'E','N','T','O','N','C','E','S'}, {'S','I','N','O'}, {'F','I','N','-','S','I'},
+        {'P','A','R','A'}, {'F','I','N','-','P','A','R','A'}, {'M','I','E','N','T','R','A','S'}, {'F','I','N','-','M','I','E','N','T','R','A','S'},
+        {'E','N','T','E','R','O'}, {'D','E','C','I','M','A','L'}, {'T','E','X','T','O'}, {'B','O','O','L','E','A','N','O'}, {'V','A','C','I','O'},
+        {'I','M','P','R','I','M','E'}, {'L','E','E','R'}, {'Y'}, {'O'}, {'N','O'}, {'V'}, {'F'}
     };
 
     public Semantico() {
         tablaSimbolos = new SimboloS[1000];
-        listaErrores = new String[200];
+        listaErrores = new char[200][];
     }
 
-    public void setDentroDeFuncion(boolean estado, String tipo) {
+    public void setDentroDeFuncion(boolean estado, char[] tipo) {
         this.dentroDeFuncion = estado;
         this.tipoFuncionActual = tipo;
     }
 
-    public void registrarVariable(int linea, int columna, String nombre, String tipo, boolean inicializado) {
+    public void registrarVariable(int linea, int columna, char[] nombre, char[] tipo, boolean inicializado) {
         for (int i = 0; i < PALABRAS_RESERVADAS.length; i++) {
-            if (PALABRAS_RESERVADAS[i].equalsIgnoreCase(nombre)) {
-                registrarError(linea, columna, "E10", "Uso de palabra reservada '" + nombre + "' como identificador.");
+            if (esIgualIgnorandoMayusculas(PALABRAS_RESERVADAS[i], nombre)) {
+                registrarError(linea, columna, new char[]{'E','1','0'}, concatenar(new char[]{'U','s','o',' ','d','e',' ','p','a','l','a','b','r','a',' ','r','e','s','e','r','v','a','d','a',' ','\''}, nombre, new char[]{'\''}));
                 return;
             }
         }
         if (buscarSimbolo(nombre) != null) {
-            registrarError(linea, columna, "E2", "El identificador '" + nombre + "' ya ha sido declarado previamente.");
+            registrarError(linea, columna, new char[]{'E','2'}, concatenar(new char[]{'E','l',' ','i','d','e','n','t','i','f','i','c','a','d','o','r',' ','\''}, nombre, new char[]{'\''}));
         } else {
             if (contadorSimbolos < tablaSimbolos.length) {
                 tablaSimbolos[contadorSimbolos++] = new SimboloS(nombre, tipo, inicializado, linea, columna);
@@ -44,15 +48,15 @@ public class Semantico {
         }
     }
 
-    public void registrarFuncion(int linea, int columna, String nombre, String tipoRetorno, String firma) {
+    public void registrarFuncion(int linea, int columna, char[] nombre, char[] tipoRetorno, char[][] firma) {
         for (int i = 0; i < PALABRAS_RESERVADAS.length; i++) {
-            if (PALABRAS_RESERVADAS[i].equalsIgnoreCase(nombre)) {
-                registrarError(linea, columna, "E10", "Uso de palabra reservada '" + nombre + "' como nombre de funcion.");
+            if (esIgualIgnorandoMayusculas(PALABRAS_RESERVADAS[i], nombre)) {
+                registrarError(linea, columna, new char[]{'E','1','0'}, concatenar(new char[]{'U','s','o',' ','d','e',' ','p','a','l','a','b','r','a',' ','r','e','s','e','r','v','a','d','a',' ','\''}, nombre, new char[]{'\''}));
                 return;
             }
         }
         if (buscarSimbolo(nombre) != null) {
-            registrarError(linea, columna, "E12", "La funcion '" + nombre + "' ya ha sido definida.");
+            registrarError(linea, columna, new char[]{'E','1','2'}, concatenar(new char[]{'L','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         } else {
             if (contadorSimbolos < tablaSimbolos.length) {
                 SimboloS s = new SimboloS(nombre, tipoRetorno, true, linea, columna);
@@ -63,171 +67,155 @@ public class Semantico {
         }
     }
 
-    public SimboloS buscarSimbolo(String nombre) {
+    public SimboloS buscarSimbolo(char[] nombre) {
         for (int i = 0; i < contadorSimbolos; i++) {
-            if (tablaSimbolos[i].nombre.equals(nombre)) {
+            if (esIgual(tablaSimbolos[i].nombre, nombre)) {
                 return tablaSimbolos[i];
             }
         }
         return null;
     }
 
-    public void validarUsoVariable(String nombre, int linea, int columna) {
+    public void validarUsoVariable(char[] nombre, int linea, int columna) {
         SimboloS simbolo = buscarSimbolo(nombre);
         if (simbolo == null) {
-            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'V','a','r','i','a','b','l','e',' ','\''}, nombre, new char[]{'\''}));
         } else if (simbolo.esFuncion) {
-            registrarError(linea, columna, "E1", "Se intenta usar la funcion '" + nombre + "' como una variable.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'S','e',' ','i','n','t','e','n','t','a',' ','u','s','a','r',' ','l','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         } else if (!simbolo.inicializado) {
-            registrarError(linea, columna, "E13", "La variable '" + nombre + "' se usa sin haber sido inicializada.");
+            registrarError(linea, columna, new char[]{'E','1','3'}, concatenar(new char[]{'V','a','r','i','a','b','l','e',' ','s','i','n',' ','i','n','i','c','i','a','l','i','z','a','r',' ','\''}, nombre, new char[]{'\''}));
         }
     }
 
-    public void validarDivisionPorCero(int linea, int columna, String operador, double valor) {
-        if ((operador.equals("/") || operador.equals("%") || operador.equals("DIVISION") || operador.equals("MODULO")) && valor == 0) {
-            registrarError(linea, columna, "E11", "Division por cero detectada en operacion '" + operador + "'.");
+    public void validarDivisionPorCero(int linea, int columna, char[] operador, double valor) {
+        if ((esIgual(operador, new char[]{'/'}) || esIgual(operador, new char[]{'%'}) || 
+             esIgual(operador, new char[]{'D','I','V','I','S','I','O','N'}) || 
+             esIgual(operador, new char[]{'M','O','D','U','L','O'})) && valor == 0) {
+            registrarError(linea, columna, new char[]{'E','1','1'}, concatenar(new char[]{'D','i','v','i','s','i','o','n',' ','p','o','r',' ','c','e','r','o',' ','\''}, operador, new char[]{'\''}));
         }
     }
 
-    public void validarTipoCondicion(String tipo, int linea, int columna) {
-        if (tipo.equals("DESCONOCIDO")) return;
-        if (!tipo.equals("BOOLEANO")) {
-            registrarError(linea, columna, "E4", "La condicion debe ser BOOLEANO. Se encontro: " + tipo);
+    public void validarTipoCondicion(char[] tipo, int linea, int columna) {
+        if (esIgual(tipo, new char[]{'D','E','S','C','O','N','O','C','I','D','O'})) return;
+        if (!esIgual(tipo, new char[]{'B','O','O','L','E','A','N','O'})) {
+            registrarError(linea, columna, new char[]{'E','4'}, concatenar(new char[]{'L','a',' ','c','o','n','d','i','c','i','o','n',' ','d','e','b','e',' ','s','e','r',' ','B','O','O','L','E','A','N','O','.',' ','S','e',' ','e','n','c','o','n','t','r','o',':',' '}, tipo));
         }
     }
 
-    public void verificarCompatibilidad(String nombre, String tipoOrigen, int linea, int columna) {
+    public void verificarCompatibilidad(char[] nombre, char[] tipoOrigen, int linea, int columna) {
         SimboloS simbolo = buscarSimbolo(nombre);
         if (simbolo == null) {
-            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'V','a','r','i','a','b','l','e',' ','\''}, nombre, new char[]{'\''}));
             return;
         }
         if (simbolo.esFuncion) {
-            registrarError(linea, columna, "E1", "El identificador '" + nombre + "' es una funcion y no puede recibir asignaciones.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'E','l',' ','i','d','e','n','t','i','f','i','c','a','d','o','r',' ','\''}, nombre, new char[]{'\''}));
             return;
         }
-        if (!tipoOrigen.equals("DESCONOCIDO")) {
-            if (!simbolo.tipo.equals(tipoOrigen)) {
-                registrarError(linea, columna, "E3", "Incompatibilidad de tipos: No se puede asignar " + tipoOrigen + " a variable " + simbolo.tipo);
+        if (!esIgual(tipoOrigen, new char[]{'D','E','S','C','O','N','O','C','I','D','O'})) {
+            if (!esIgual(simbolo.tipo, tipoOrigen)) {
+                registrarError(linea, columna, new char[]{'E','3'}, concatenar(new char[]{'I','n','c','o','m','p','a','t','i','b','i','l','i','d','a','d',' ','d','e',' ','t','i','p','o','s',' ','-',' '}, tipoOrigen, new char[]{' ','y',' '}, simbolo.tipo));
             }
         }
     }
 
-    public void validarOperando(String tipoActual, String categoriaEsperada, int linea, int columna, String operador) {
-        if (tipoActual.equals("DESCONOCIDO")) return;
+    public void validarOperando(char[] tipoActual, char[] categoriaEsperada, int linea, int columna, char[] operador) {
+        if (esIgual(tipoActual, new char[]{'D','E','S','C','O','N','O','C','I','D','O'})) return;
 
-        if (categoriaEsperada.equals("ARITMETICO")) {
-            if (!tipoActual.equals("ENTERO") && !tipoActual.equals("DECIMAL")) {
-                registrarError(linea, columna, "E3", "El operando de '" + operador + "' debe ser numerico. Se recibio: " + tipoActual);
+        if (esIgual(categoriaEsperada, new char[]{'A','R','I','T','M','E','T','I','C','O'})) {
+            if (!esIgual(tipoActual, new char[]{'E','N','T','E','R','O'}) && !esIgual(tipoActual, new char[]{'D','E','C','I','M','A','L'})) {
+                registrarError(linea, columna, new char[]{'E','3'}, concatenar(new char[]{'O','p','e','r','a','n','d','o',' ','i','n','c','o','r','r','e','c','t','o',' ','p','a','r','a',' ','\''}, operador, new char[]{'\''}));
             }
-        } else if (categoriaEsperada.equals("LOGICO")) {
-            if (!tipoActual.equals("BOOLEANO")) {
-                registrarError(linea, columna, "E3", "El operando de '" + operador + "' debe ser booleano. Se recibio: " + tipoActual);
+        } else if (esIgual(categoriaEsperada, new char[]{'L','O','G','I','C','O'})) {
+            if (!esIgual(tipoActual, new char[]{'B','O','O','L','E','A','N','O'})) {
+                registrarError(linea, columna, new char[]{'E','3'}, concatenar(new char[]{'O','p','e','r','a','n','d','o',' ','l','o','g','i','c','o',' ','i','n','c','o','r','r','e','c','t','o',' ','\''}, operador, new char[]{'\''}));
             }
         }
     }
 
-    public void verificarCompatibilidadBinaria(String t1, String t2, int lin, int col, String op) {
-        if (t1.equals("DESCONOCIDO") || t2.equals("DESCONOCIDO")) return;
-        if (!t1.equals(t2)) {
-            registrarError(lin, col, "E3", "Tipos incompatibles para '" + op + "': " + t1 + " y " + t2);
+    public void verificarCompatibilidadBinaria(char[] t1, char[] t2, int lin, int col, char[] op) {
+        if (esIgual(t1, new char[]{'D','E','S','C','O','N','O','C','I','D','O'}) || esIgual(t2, new char[]{'D','E','S','C','O','N','O','C','I','D','O'})) return;
+        if (!esIgual(t1, t2)) {
+            registrarError(lin, col, new char[]{'E','3'}, concatenar(new char[]{'T','i','p','o','s',' ','i','n','c','o','m','p','a','t','i','b','l','e','s',' ','p','a','r','a',' ','\''}, op, new char[]{'\''}));
         }
     }
 
-    public String obtenerTipoResultante(String t1, String t2) {
-        if (t1.equals(t2)) return t1;
-        return "DESCONOCIDO";
+    public char[] obtenerTipoResultante(char[] t1, char[] t2) {
+        if (esIgual(t1, t2)) return t1;
+        return new char[]{'D','E','S','C','O','N','O','C','I','D','O'};
     }
 
-    public void validarContadorPara(String nombre, int linea, int columna) {
+    public void validarContadorPara(char[] nombre, int linea, int columna) {
         SimboloS sim = buscarSimbolo(nombre);
-        if (sim != null && !sim.tipo.equals("ENTERO") && !sim.tipo.equals("DECIMAL")) {
-            registrarError(linea, columna, "E9", "La variable de control '" + nombre + "' debe ser numerica.");
+        if (sim != null && !esIgual(sim.tipo, new char[]{'E','N','T','E','R','O'}) && !esIgual(sim.tipo, new char[]{'D','E','C','I','M','A','L'})) {
+            registrarError(linea, columna, new char[]{'E','9'}, concatenar(new char[]{'L','a',' ','v','a','r','i','a','b','l','e',' ','d','e',' ','c','o','n','t','r','o','l',' ','\''}, nombre, new char[]{'\''}));
         }
     }
 
-    public void validarLlamada(String nombre, String firmaArgumentos, int linea, int columna) {
+    public void validarLlamada(char[] nombre, char[][] tiposArgs, int linea, int columna) {
         SimboloS sim = buscarSimbolo(nombre);
         if (sim == null) {
-            registrarError(linea, columna, "E5", "Funcion '" + nombre + "' no definida.");
+            registrarError(linea, columna, new char[]{'E','5'}, concatenar(new char[]{'F','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
             return;
         }
         if (!sim.esFuncion) {
-            registrarError(linea, columna, "E1", "'" + nombre + "' no es una funcion.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'\''}, nombre, new char[]{'\''}));
             return;
         }
         
-        String[] tiposArgs = fragmentarFirma(firmaArgumentos);
-        String[] paramsEsperados = fragmentarFirma(sim.firma);
+        char[][] paramsEsperados = sim.firma;
         
         if (paramsEsperados.length != tiposArgs.length) {
-            registrarError(linea, columna, "E6", "Numero de argumentos incorrecto para '" + nombre + "'. Esperados: " + paramsEsperados.length + ", recibidos: " + tiposArgs.length);
+            registrarError(linea, columna, new char[]{'E','6'}, concatenar(new char[]{'N','u','m','e','r','o',' ','d','e',' ','a','r','g','u','m','e','n','t','o','s',' ','i','n','c','o','r','r','e','c','t','o',' ','p','a','r','a',' ','\''}, nombre, new char[]{'\''}));
             return;
         }
         
         for (int i = 0; i < paramsEsperados.length; i++) {
-            if (!paramsEsperados[i].equals(tiposArgs[i])) {
-                registrarError(linea, columna, "E7", "Tipo de argumento " + (i + 1) + " invalido para '" + nombre + "'. Se esperaba " + paramsEsperados[i] + " pero se recibio " + tiposArgs[i]);
+            if (!esIgual(paramsEsperados[i], tiposArgs[i])) {
+                registrarError(linea, columna, new char[]{'E','7'}, concatenar(new char[]{'T','i','p','o',' ','d','e',' ','a','r','g','u','m','e','n','t','o',' ','i','n','v','a','l','i','d','o',' ','p','a','r','a',' ','\''}, nombre, new char[]{'\''}));
             }
         }
     }
 
-    private String[] fragmentarFirma(String firma) {
-        if (firma == null || firma.isEmpty()) return new String[0];
-        int comas = 0;
-        for (int i = 0; i < firma.length(); i++) if (firma.charAt(i) == ',') comas++;
-        String[] partes = new String[comas + 1];
-        int inicio = 0;
-        int idx = 0;
-        for (int i = 0; i < firma.length(); i++) {
-            if (firma.charAt(i) == ',') {
-                partes[idx++] = firma.substring(inicio, i);
-                inicio = i + 1;
-            }
-        }
-        partes[idx] = firma.substring(inicio);
-        return partes;
-    }
-
-    public void realizarDeclaracion(String nombre, int etiquetaTipo, int linea, int columna) {
-        String nombreTipo = Etiqueta.obtenerNombre(etiquetaTipo);
-        if (nombreTipo.equals("VACIO")) {
-            registrarError(linea, columna, "E14", "No se permiten variables de tipo VACIO.");
+    public void realizarDeclaracion(char[] nombre, int etiquetaTipo, int linea, int columna) {
+        char[] nombreTipo = Etiqueta.obtenerNombre(etiquetaTipo);
+        if (esIgual(nombreTipo, new char[]{'V','A','C','I','O'})) {
+            registrarError(linea, columna, new char[]{'E','1','4'}, new char[]{'N','o',' ','s','e',' ','p','e','r','m','i','t','e','n',' ','v','a','r','i','a','b','l','e','s',' ','d','e',' ','t','i','p','o',' ','V','A','C','I','O','.'});
             return;
         }
         registrarVariable(linea, columna, nombre, nombreTipo, false);
     }
 
-    public void realizarAsignacion(String nombre, int linea, int columna) {
+    public void realizarAsignacion(char[] nombre, int linea, int columna) {
         SimboloS simbolo = buscarSimbolo(nombre);
         if (simbolo == null) {
-            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'V','a','r','i','a','b','l','e',' ','\''}, nombre, new char[]{'\''}));
         } else if (simbolo.esFuncion) {
-            registrarError(linea, columna, "E1", "No se puede asignar un valor a la funcion '" + nombre + "'.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'N','o',' ','s','e',' ','p','u','e','d','e',' ','a','s','i','g','n','a','r',' ','u','n',' ','v','a','l','o','r',' ','a',' ','l','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         } else {
             simbolo.inicializado = true;
         }
     }
 
-    public void realizarLectura(String nombre, int linea, int columna) {
+    public void realizarLectura(char[] nombre, int linea, int columna) {
         SimboloS simbolo = buscarSimbolo(nombre);
         if (simbolo == null) {
-            registrarError(linea, columna, "E1", "Variable '" + nombre + "' no declarada.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'V','a','r','i','a','b','l','e',' ','\''}, nombre, new char[]{'\''}));
         } else if (simbolo.esFuncion) {
-            registrarError(linea, columna, "E1", "No se puede leer un valor hacia el identificador de funcion '" + nombre + "'.");
+            registrarError(linea, columna, new char[]{'E','1'}, concatenar(new char[]{'N','o',' ','s','e',' ','p','u','e','d','e',' ','l','e','e','r',' ','u','n',' ','v','a','l','o','r',' ','h','a','c','i','a',' ','l','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         } else {
             simbolo.inicializado = true;
         }
     }
 
-    public void validarRetorno(String tipoExpresion, int linea, int columna, String tipoFuncion) {
+    public void validarRetorno(char[] tipoExpresion, int linea, int columna, char[] tipoFuncion) {
         retornoDetectado = true;
-        if (tipoFuncion.equals("VACIO")) {
-            registrarError(linea, columna, "E15", "Sentencia RETORNA no permitida en funciones VACIO.");
+        if (esIgual(tipoFuncion, new char[]{'V','A','C','I','O'})) {
+            registrarError(linea, columna, new char[]{'E','1','5'}, new char[]{'S','e','n','t','e','n','c','i','a',' ','R','E','T','O','R','N','A',' ','n','o',' ','p','e','r','m','i','t','i','d','a',' ','e','n',' ','f','u','n','c','i','o','n','e','s',' ','V','A','C','I','O','.'});
             return;
         }
-        if (!tipoExpresion.equals(tipoFuncion)) {
-            registrarError(linea, columna, "E8", "El tipo retornado (" + tipoExpresion + ") no coincide con la funcion (" + tipoFuncion + ").");
+        if (!esIgual(tipoExpresion, tipoFuncion)) {
+            registrarError(linea, columna, new char[]{'E','8'}, concatenar(new char[]{'E','l',' ','t','i','p','o',' ','r','e','t','o','r','n','a','d','o',' ','n','o',' ','c','o','i','n','c','i','d','e',' ','c','o','n',' ','l','a',' ','f','u','n','c','i','o','n'}));
         }
     }
 
@@ -235,21 +223,81 @@ public class Semantico {
         retornoDetectado = false;
     }
 
-    public void finalizarFuncion(String nombre, String tipoFuncion, int linea, int columna) {
-        if (!tipoFuncion.equals("VACIO") && !retornoDetectado) {
-            registrarError(linea, columna, "E8", "La funcion '" + nombre + "' debe retornar un valor de tipo " + tipoFuncion);
+    public void finalizarFuncion(char[] nombre, char[] tipoFuncion, int linea, int columna) {
+        if (!esIgual(tipoFuncion, new char[]{'V','A','C','I','O'}) && !retornoDetectado) {
+            registrarError(linea, columna, new char[]{'E','8'}, concatenar(new char[]{'L','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         }
     }
 
-    public void registrarError(int linea, int columna, String clave, String mensaje) {
+    public void registrarError(int linea, int columna, char[] clave, char[] mensaje) {
         if (contadorErrores < listaErrores.length) {
-            listaErrores[contadorErrores++] = "[" + clave + "] Linea " + linea + ", Col " + columna + ": " + mensaje;
+            char[] charsLinea = intAChars(linea);
+            char[] charsCol = intAChars(columna);
+            listaErrores[contadorErrores++] = concatenar(new char[]{'['}, clave, new char[]{']',' ','L','i','n','e','a',' '}, charsLinea, new char[]{',',' ','C','o','l',' '}, charsCol, new char[]{':',' '}, mensaje);
         }
     }
 
     public String[] obtenerMensajesDeError() {
         String[] copia = new String[contadorErrores];
-        for (int i = 0; i < contadorErrores; i++) copia[i] = listaErrores[i];
+        for (int i = 0; i < contadorErrores; i++) {
+            copia[i] = new String(listaErrores[i]);
+        }
         return copia;
+    }
+
+    public boolean esIgual(char[] a, char[] b) {
+        if (a == null || b == null) return false;
+        if (a.length != b.length) return false;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] != b[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean esIgualIgnorandoMayusculas(char[] a, char[] b) {
+        if (a == null || b == null) return false;
+        if (a.length != b.length) return false;
+        for (int i = 0; i < a.length; i++) {
+            char ca = a[i];
+            char cb = b[i];
+            if (ca >= 'A' && ca <= 'Z') ca = (char)(ca + 32);
+            if (cb >= 'A' && cb <= 'Z') cb = (char)(cb + 32);
+            if (ca != cb) return false;
+        }
+        return true;
+    }
+
+    public char[] concatenar(char[]... partes) {
+        int tamano = 0;
+        for (int i = 0; i < partes.length; i++) {
+            if (partes[i] != null) tamano += partes[i].length;
+        }
+        char[] resultado = new char[tamano];
+        int indice = 0;
+        for (int i = 0; i < partes.length; i++) {
+            if (partes[i] != null) {
+                for (int j = 0; j < partes[i].length; j++) {
+                    resultado[indice++] = partes[i][j];
+                }
+            }
+        }
+        return resultado;
+    }
+
+    private char[] intAChars(int numero) {
+        if (numero == 0) return new char[]{'0'};
+        int temp = numero;
+        int digitos = 0;
+        while (temp > 0) {
+            digitos++;
+            temp /= 10;
+        }
+        char[] resultado = new char[digitos];
+        temp = numero;
+        for (int i = digitos - 1; i >= 0; i--) {
+            resultado[i] = (char) ((temp % 10) + '0');
+            temp /= 10;
+        }
+        return resultado;
     }
 }

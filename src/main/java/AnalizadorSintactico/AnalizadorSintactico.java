@@ -9,7 +9,12 @@ public class AnalizadorSintactico {
     private Semantico semantico;
     private AnalizadorLexico lexico;
     private SimboloLexico preanalisis;
-    private String tipoFuncionGlobal = "VACIO";
+    private char[] tipoFuncionGlobal = {'V','A','C','I','O'};
+    private final char[] BOOLEANO = {'B','O','O','L','E','A','N','O'};
+    private final char[] ENTERO = {'E','N','T','E','R','O'};
+    private final char[] DECIMAL = {'D','E','C','I','M','A','L'};
+    private final char[] TEXTO = {'T','E','X','T','O'};
+    private final char[] DESCONOCIDO = {'D','E','S','C','O','N','O','C','I','D','O'};
 
     public AnalizadorSintactico(AnalizadorLexico analizadorLexico) throws IOException {
         lexico = analizadorLexico;
@@ -20,19 +25,45 @@ public class AnalizadorSintactico {
     private void avanzar() throws IOException {
         preanalisis = lexico.obtenerSiguienteToken();
         if (preanalisis.etiqueta == Etiqueta.ERROR) {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "LEXICO", 
-                                     preanalisis.toString(), lexico.obtenerTextoLinea(preanalisis.linea));
+            char[] lex = ((Palabra) preanalisis).getLexema();
+            if (lex == null) lex = new char[]{(char) preanalisis.etiqueta};
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'L','E','X','I','C','O'}, 
+                                     lex, lexico.obtenerTextoLinea(preanalisis.linea));
         }
+    }
+
+    private char[] concatenar(char[]... partes) {
+        int tamano = 0;
+        for (int i = 0; i < partes.length; i++) {
+            if (partes[i] != null) tamano += partes[i].length;
+        }
+        char[] resultado = new char[tamano];
+        int indice = 0;
+        for (int i = 0; i < partes.length; i++) {
+            if (partes[i] != null) {
+                for (int j = 0; j < partes[i].length; j++) {
+                    resultado[indice++] = partes[i][j];
+                }
+            }
+        }
+        return resultado;
     }
 
     private void emparejar(int etiquetaEsperada) throws IOException {
         if (preanalisis.etiqueta == etiquetaEsperada) {
             avanzar();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO",
-                    "Se esperaba: " + Etiqueta.obtenerNombre(etiquetaEsperada) + 
-                    " pero se encontro: '" + preanalisis.toString() + "'",
-                    lexico.obtenerTextoLinea(preanalisis.linea));
+            char[] nombreEsp = Etiqueta.obtenerNombre(etiquetaEsperada);
+            char[] lexema;
+            if (preanalisis instanceof Palabra) {
+                lexema = ((Palabra) preanalisis).getLexema();
+            } else {
+                lexema = new char[]{(char) preanalisis.etiqueta};
+            }
+            if (lexema == null) lexema = new char[0];
+            char[] mensaje = concatenar(new char[]{'S','e',' ','e','s','p','e','r','a','b','a',':',' '}, nombreEsp, new char[]{' ','p','e','r','o',' ','s','e',' ','e','n','c','o','n','t','r','o',':',' ','\''}, lexema, new char[]{'\''});
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'S','I','N','T','A','C','T','I','C','O'},
+                    mensaje, lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
@@ -69,12 +100,12 @@ public class AnalizadorSintactico {
             int colF = preanalisis.columna;
             emparejar(Etiqueta.FUNCION);
             int etiquetaTipoRetorno = preanalisis.etiqueta;
-            String tipoRetorno = Etiqueta.obtenerNombre(etiquetaTipoRetorno);
+            char[] tipoRetorno = Etiqueta.obtenerNombre(etiquetaTipoRetorno);
             procesarTipo();
-            String nombreFuncion = ((Palabra) preanalisis).lexema;
+            char[] nombreFuncion = ((Palabra) preanalisis).getLexema();
             emparejar(Etiqueta.IDENTIFICADOR);
             emparejar('(');
-            String firma = "";
+            char[][] firma = new char[0][0];
             if (esUnTipoDato(preanalisis.etiqueta)) {
                 firma = procesarParametros();
             }
@@ -90,11 +121,11 @@ public class AnalizadorSintactico {
         }
     }
 
-    private String procesarParametros() throws IOException {
+    private char[][] procesarParametros() throws IOException {
         int tipoParametro = preanalisis.etiqueta;
-        String nombreTipo = Etiqueta.obtenerNombre(tipoParametro);
+        char[] nombreTipo = Etiqueta.obtenerNombre(tipoParametro);
         procesarTipo();
-        String idParametro = ((Palabra) preanalisis).lexema;
+        char[] idParametro = ((Palabra) preanalisis).getLexema();
         int linP = preanalisis.linea;
         int colP = preanalisis.columna;
         emparejar(Etiqueta.IDENTIFICADOR);
@@ -102,26 +133,32 @@ public class AnalizadorSintactico {
         semantico.realizarAsignacion(idParametro, linP, colP);
         if (preanalisis.etiqueta == ',') {
             emparejar(',');
-            return nombreTipo + "," + procesarParametros();
+            char[][] resto = procesarParametros();
+            char[][] firmaCompleta = new char[resto.length + 1][];
+            firmaCompleta[0] = nombreTipo;
+            for (int i = 0; i < resto.length; i++) {
+                firmaCompleta[i + 1] = resto[i];
+            }
+            return firmaCompleta;
         }
-        return nombreTipo;
+        return new char[][]{nombreTipo};
     }
 
     private void declararVariable() throws IOException {
         int tipoV = preanalisis.etiqueta;
         procesarTipo();
         if (!(preanalisis instanceof Palabra)) {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Identificador no valido.", lexico.obtenerTextoLinea(preanalisis.linea));
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'S','I','N','T','A','C','T','I','C','O'}, 
+                                     new char[]{'I','d','e','n','t','i','f','i','c','a','d','o','r',' ','n','o',' ','v','a','l','i','d','o'}, lexico.obtenerTextoLinea(preanalisis.linea));
         }
-        String nombreV = ((Palabra) preanalisis).lexema;
+        char[] nombreV = ((Palabra) preanalisis).getLexema();
         int linV = preanalisis.linea;
         int colV = preanalisis.columna;
         emparejar(Etiqueta.IDENTIFICADOR);
         semantico.realizarDeclaracion(nombreV, tipoV, linV, colV);
         if (preanalisis.etiqueta == '=') {
             emparejar('=');
-            String tipoValor = expresionLogica();
+            char[] tipoValor = expresionLogica();
             semantico.verificarCompatibilidad(nombreV, tipoValor, linV, colV);
             semantico.realizarAsignacion(nombreV, linV, colV);
         }
@@ -131,8 +168,8 @@ public class AnalizadorSintactico {
         if (esUnTipoDato(preanalisis.etiqueta)) {
             avanzar();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Tipo de dato invalido.", 
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'S','I','N','T','A','C','T','I','C','O'}, 
+                                     new char[]{'T','i','p','o',' ','d','e',' ','d','a','t','o',' ','i','n','v','a','l','i','d','o'}, 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
@@ -171,37 +208,45 @@ public class AnalizadorSintactico {
         } else if (e == Etiqueta.IDENTIFICADOR) {
             gestionAsignacionLlamada();
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Instruccion desconocida: '" + preanalisis.toString() + "'", 
+            char[] lexema;
+            if (preanalisis instanceof Palabra) {
+                lexema = ((Palabra) preanalisis).getLexema();
+            } else {
+                lexema = new char[]{(char) preanalisis.etiqueta};
+            }
+            if (lexema == null) lexema = new char[0];
+            char[] mensaje = concatenar(new char[]{'I','n','s','t','r','u','c','c','i','o','n',' ','d','e','s','c','o','n','o','c','i','d','a',':',' ','\''}, lexema, new char[]{'\''});
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'S','I','N','T','A','C','T','I','C','O'}, 
+                                     mensaje, 
                                      lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
     private void gestionAsignacionLlamada() throws IOException {
-        String idNombre = ((Palabra) preanalisis).lexema;
+        char[] idNombre = ((Palabra) preanalisis).getLexema();
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
         emparejar(Etiqueta.IDENTIFICADOR);
         if (preanalisis.etiqueta == '=') {
             emparejar('=');
-            String tipoValor = expresionLogica();
+            char[] tipoValor = expresionLogica();
             semantico.verificarCompatibilidad(idNombre, tipoValor, lin, col);
             semantico.realizarAsignacion(idNombre, lin, col);
         } else if (preanalisis.etiqueta == '(') {
             emparejar('(');
-            String firmaArg = procesarArgumentos();
+            char[][] firmaArg = procesarArgumentos();
             emparejar(')');
             semantico.validarLlamada(idNombre, firmaArg, lin, col);
         }
     }
 
     private void asignacionDirecta() throws IOException {
-        String idVariable = ((Palabra) preanalisis).lexema;
+        char[] idVariable = ((Palabra) preanalisis).getLexema();
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
         emparejar(Etiqueta.IDENTIFICADOR);
         emparejar('=');
-        String tipoValor = expresionLogica();
+        char[] tipoValor = expresionLogica();
         semantico.verificarCompatibilidad(idVariable, tipoValor, lin, col);
         semantico.realizarAsignacion(idVariable, lin, col);
     }
@@ -210,7 +255,7 @@ public class AnalizadorSintactico {
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
         emparejar(Etiqueta.RETORNA);
-        String tipoRet = expresionLogica();
+        char[] tipoRet = expresionLogica();
         semantico.validarRetorno(tipoRet, lin, col, tipoFuncionGlobal);
     }
 
@@ -219,7 +264,7 @@ public class AnalizadorSintactico {
         int col = preanalisis.columna;
         emparejar(Etiqueta.SI);
         emparejar('(');
-        String tipoCond = expresionLogica();
+        char[] tipoCond = expresionLogica();
         semantico.validarTipoCondicion(tipoCond, lin, col);
         emparejar(')');
         emparejar(Etiqueta.ENTONCES);
@@ -236,7 +281,7 @@ public class AnalizadorSintactico {
         int col = preanalisis.columna;
         emparejar(Etiqueta.MIENTRAS);
         emparejar('(');
-        String tipoCond = expresionLogica();
+        char[] tipoCond = expresionLogica();
         semantico.validarTipoCondicion(tipoCond, lin, col);
         emparejar(')');
         bloqueInstrucciones();
@@ -253,7 +298,7 @@ public class AnalizadorSintactico {
     private void procesoLeer() throws IOException {
         emparejar(Etiqueta.LEER);
         emparejar('(');
-        String idVariable = ((Palabra) preanalisis).lexema;
+        char[] idVariable = ((Palabra) preanalisis).getLexema();
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
         emparejar(Etiqueta.IDENTIFICADOR);
@@ -264,7 +309,7 @@ public class AnalizadorSintactico {
     private void procesoPara() throws IOException {
         emparejar(Etiqueta.PARA);
         emparejar('(');
-        String idContador = ((Palabra) preanalisis).lexema;
+        char[] idContador = ((Palabra) preanalisis).getLexema();
         int linC = preanalisis.linea;
         int colC = preanalisis.columna;
         asignacionDirecta();
@@ -278,35 +323,35 @@ public class AnalizadorSintactico {
         emparejar(Etiqueta.FIN_PARA);
     }
 
-    private String expresionLogica() throws IOException {
+    private char[] expresionLogica() throws IOException {
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
-        String tipo = terminoLogico();
+        char[] tipo = terminoLogico();
         while (preanalisis.etiqueta == Etiqueta.O) {
-            semantico.validarOperando(tipo, "LOGICO", lin, col, "O");
+            semantico.validarOperando(tipo, new char[]{'L','O','G','I','C','O'}, lin, col, new char[]{'O'});
             emparejar(Etiqueta.O);
-            String tipo2 = terminoLogico();
-            semantico.validarOperando(tipo2, "LOGICO", lin, col, "O");
-            tipo = "BOOLEANO";
+            char[] tipo2 = terminoLogico();
+            semantico.validarOperando(tipo2, new char[]{'L','O','G','I','C','O'}, lin, col, new char[]{'O'});
+            tipo = BOOLEANO;
         }
         return tipo;
     }
 
-    private String terminoLogico() throws IOException {
+    private char[] terminoLogico() throws IOException {
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
-        String tipo = factorLogico();
+        char[] tipo = factorLogico();
         while (preanalisis.etiqueta == Etiqueta.Y) {
-            semantico.validarOperando(tipo, "LOGICO", lin, col, "Y");
+            semantico.validarOperando(tipo, new char[]{'L','O','G','I','C','O'}, lin, col, new char[]{'Y'});
             emparejar(Etiqueta.Y);
-            String tipo2 = factorLogico();
-            semantico.validarOperando(tipo2, "LOGICO", lin, col, "Y");
-            tipo = "BOOLEANO";
+            char[] tipo2 = factorLogico();
+            semantico.validarOperando(tipo2, new char[]{'L','O','G','I','C','O'}, lin, col, new char[]{'Y'});
+            tipo = BOOLEANO;
         }
         return tipo;
     }
 
-    private String factorLogico() throws IOException {
+    private char[] factorLogico() throws IOException {
         if (preanalisis.etiqueta == Etiqueta.NO) {
             emparejar(Etiqueta.NO);
             return factorLogico();
@@ -315,64 +360,64 @@ public class AnalizadorSintactico {
         }
     }
 
-    private String expresionRelacional() throws IOException {
+    private char[] expresionRelacional() throws IOException {
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
-        String tipo = expresionAritmetica();
+        char[] tipo = expresionAritmetica();
         while (preanalisis.etiqueta == '<' || preanalisis.etiqueta == '>' ||
                 preanalisis.etiqueta == Etiqueta.MAYOR_IGUAL || preanalisis.etiqueta == Etiqueta.MENOR_IGUAL ||
                 preanalisis.etiqueta == Etiqueta.IGUALDAD || preanalisis.etiqueta == Etiqueta.DIFERENTE) {
-            String op = Etiqueta.obtenerNombre(preanalisis.etiqueta);
-            semantico.validarOperando(tipo, "ARITMETICO", lin, col, op);
+            char[] op = Etiqueta.obtenerNombre(preanalisis.etiqueta);
+            semantico.validarOperando(tipo, new char[]{'A','R','I','T','M','E','T','I','C','O'}, lin, col, op);
             avanzar();
-            String tipo2 = expresionAritmetica();
-            semantico.validarOperando(tipo2, "ARITMETICO", lin, col, op);
+            char[] tipo2 = expresionAritmetica();
+            semantico.validarOperando(tipo2, new char[]{'A','R','I','T','M','E','T','I','C','O'}, lin, col, op);
             semantico.verificarCompatibilidadBinaria(tipo, tipo2, lin, col, op);
-            tipo = "BOOLEANO";
+            tipo = BOOLEANO;
         }
         return tipo;
     }
 
-    private String expresionAritmetica() throws IOException {
+    private char[] expresionAritmetica() throws IOException {
         int lin = preanalisis.linea;
         int col = preanalisis.columna;
-        String tipo = terminoAritmetico();
+        char[] tipo = terminoAritmetico();
         while (preanalisis.etiqueta == '+' || preanalisis.etiqueta == '-') {
-            String op = (preanalisis.etiqueta == '+') ? "+" : "-";
-            semantico.validarOperando(tipo, "ARITMETICO", lin, col, op);
+            char[] op = (preanalisis.etiqueta == '+') ? new char[]{'+'} : new char[]{'-'};
+            semantico.validarOperando(tipo, new char[]{'A','R','I','T','M','E','T','I','C','O'}, lin, col, op);
             avanzar();
-            String tipo2 = terminoAritmetico();
-            semantico.validarOperando(tipo2, "ARITMETICO", lin, col, op);
+            char[] tipo2 = terminoAritmetico();
+            semantico.validarOperando(tipo2, new char[]{'A','R','I','T','M','E','T','I','C','O'}, lin, col, op);
             semantico.verificarCompatibilidadBinaria(tipo, tipo2, lin, col, op);
             tipo = semantico.obtenerTipoResultante(tipo, tipo2);
         }
         return tipo;
     }
 
-    private String terminoAritmetico() throws IOException {
+    private char[] terminoAritmetico() throws IOException {
         int linT = preanalisis.linea;
         int colT = preanalisis.columna;
-        String tipo = expresionUnaria();
+        char[] tipo = expresionUnaria();
         while (preanalisis.etiqueta == '*' || preanalisis.etiqueta == '/' || preanalisis.etiqueta == '%') {
             int opEt = preanalisis.etiqueta;
-            String opLex = (opEt == '/') ? "DIVISION" : (opEt == '%') ? "MODULO" : "MULTIPLICACION";
+            char[] opLex = (opEt == '/') ? new char[]{'D','I','V','I','S','I','O','N'} : (opEt == '%') ? new char[]{'M','O','D','U','L','O'} : new char[]{'M','U','L','T','I','P','L','I','C','A','C','I','O','N'};
             int linOp = preanalisis.linea;
             int colOp = preanalisis.columna;
-            semantico.validarOperando(tipo, "ARITMETICO", linT, colT, opLex);
+            semantico.validarOperando(tipo, new char[]{'A','R','I','T','M','E','T','I','C','O'}, linT, colT, opLex);
             avanzar();
             if (preanalisis.etiqueta == Etiqueta.NUMERO_ENTERO || preanalisis.etiqueta == Etiqueta.NUMERO_DECIMAL) {
-                double val = ((Numero) preanalisis).valor;
+                double val = ((Numero) preanalisis).getValor();
                 semantico.validarDivisionPorCero(linOp, colOp, opLex, val);
             }
-            String tipo2 = expresionUnaria();
-            semantico.validarOperando(tipo2, "ARITMETICO", linT, colT, opLex);
+            char[] tipo2 = expresionUnaria();
+            semantico.validarOperando(tipo2, new char[]{'A','R','I','T','M','E','T','I','C','O'}, linT, colT, opLex);
             semantico.verificarCompatibilidadBinaria(tipo, tipo2, linOp, colOp, opLex);
             tipo = semantico.obtenerTipoResultante(tipo, tipo2);
         }
         return tipo;
     }
 
-    private String expresionUnaria() throws IOException {
+    private char[] expresionUnaria() throws IOException {
         if (preanalisis.etiqueta == '-') {
             avanzar();
             return expresionUnaria();
@@ -381,61 +426,76 @@ public class AnalizadorSintactico {
         }
     }
 
-    private String factorAritmetico() throws IOException {
+    private char[] factorAritmetico() throws IOException {
         int e = preanalisis.etiqueta;
         if (e == '(') {
             emparejar('(');
-            String tipo = expresionLogica();
+            char[] tipo = expresionLogica();
             emparejar(')');
             return tipo;
         } else if (e == Etiqueta.IDENTIFICADOR) {
-            String nombreId = ((Palabra) preanalisis).lexema;
+            char[] nombreId = ((Palabra) preanalisis).getLexema();
             int linId = preanalisis.linea;
             int colId = preanalisis.columna;
             emparejar(Etiqueta.IDENTIFICADOR);
             if (preanalisis.etiqueta == '(') {
                 emparejar('(');
-                String firmaArg = procesarArgumentos();
+                char[][] firmaArg = procesarArgumentos();
                 emparejar(')');
                 SimboloS sim = semantico.buscarSimbolo(nombreId);
                 semantico.validarLlamada(nombreId, firmaArg, linId, colId);
-                return (sim != null) ? sim.tipo : "DESCONOCIDO";
+                return (sim != null) ? sim.tipo : DESCONOCIDO;
             } else {
                 SimboloS sim = semantico.buscarSimbolo(nombreId);
                 semantico.validarUsoVariable(nombreId, linId, colId);
-                return (sim != null) ? sim.tipo : "DESCONOCIDO";
+                return (sim != null) ? sim.tipo : DESCONOCIDO;
             }
         } else if (e == Etiqueta.NUMERO_ENTERO) {
             avanzar();
-            return "ENTERO";
+            return ENTERO;
         } else if (e == Etiqueta.NUMERO_DECIMAL) {
             avanzar();
-            return "DECIMAL";
+            return DECIMAL;
         } else if (e == Etiqueta.CADENA) {
             avanzar();
-            return "TEXTO";
+            return TEXTO;
         } else if (e == Etiqueta.VERDADERO) {
             avanzar();
-            return "BOOLEANO";
+            return BOOLEANO;
         } else if (e == Etiqueta.FALSO) {
             avanzar();
-            return "BOOLEANO";
+            return BOOLEANO;
         } else {
-            throw new ManejadorError(preanalisis.linea, preanalisis.columna, "SINTACTICO", 
-                                     "Se esperaba un operando pero se encontro: '" + preanalisis.toString() + "'", 
-                                     lexico.obtenerTextoLinea(preanalisis.linea));
+            char[] lexema;
+            if (preanalisis instanceof Palabra) {
+                lexema = ((Palabra) preanalisis).getLexema();
+            } else {
+                lexema = new char[]{(char) preanalisis.etiqueta};
+            }
+            if (lexema == null) lexema = new char[0];
+            char[] mensaje = concatenar(new char[]{'S','e',' ','e','s','p','e','r','a','b','a',' ','u','n',' ','o','p','e','r','a','n','d','o',' ','p','e','r','o',' ','s','e',' ','e','n','c','o','n','t','r','o',':',' ','\''}, lexema, new char[]{'\''});
+            throw new ManejadorError(preanalisis.linea, preanalisis.columna, new char[]{'S','I','N','T','A','C','T','I','C','O'}, 
+                                     mensaje, lexico.obtenerTextoLinea(preanalisis.linea));
         }
     }
 
-    private String procesarArgumentos() throws IOException {
-        String firma = "";
+    private char[][] procesarArgumentos() throws IOException {
         if (preanalisis.etiqueta != ')') {
-            firma = expresionLogica();
+            char[] tipo = expresionLogica();
+            char[][] tiposArgs = new char[1][];
+            tiposArgs[0] = tipo;
+            int contador = 1;
             while (preanalisis.etiqueta == ',') {
                 emparejar(',');
-                firma += "," + expresionLogica();
+                char[] tipoSiguiente = expresionLogica();
+                char[][] nuevoTiposArgs = new char[contador + 1][];
+                for (int i = 0; i < contador; i++) nuevoTiposArgs[i] = tiposArgs[i];
+                nuevoTiposArgs[contador] = tipoSiguiente;
+                tiposArgs = nuevoTiposArgs;
+                contador++;
             }
+            return tiposArgs;
         }
-        return firma;
+        return new char[0][0];
     }
 }

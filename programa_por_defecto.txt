@@ -21,7 +21,6 @@ PRINCIPAL
     IMPRIME(c)
     c = a / b
     IMPRIME("LA DIVISION ES: ")
-
     IMPRIME(c)
     r = a % b
     IMPRIME("EL RESIDUO ES: ")

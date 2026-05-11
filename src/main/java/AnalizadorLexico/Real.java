@@ -1,14 +1,18 @@
 package AnalizadorLexico;
 
 public class Real extends SimboloLexico {
-    public final float valor;
+    private float valor;
 
-    public Real(float v, int linea, int columna) {
+    public Real(float valor, int linea, int columna) {
         super(Etiqueta.NUMERO_DECIMAL, linea, columna);
-        valor = v;
+        this.valor = valor;
     }
 
-    public String toString() {
-        return "" + valor;
+    public float getValor() {
+        return this.valor;
+    }
+
+    public void setValor(float valor) {
+        this.valor = valor;
     }
 }

@@ -1,0 +1,13 @@
+MODULO prueba_condicional
+VARIABLES
+    ENTERO a
+    ENTERO b
+FIN-VARIABLES
+PRINCIPAL
+    a = 5
+    b = 3
+    SI (a > b)
+        IMPRIME("A ES MAYOR")
+    FIN-SI
+FIN-PRINCIPAL
+FIN-MODULO
