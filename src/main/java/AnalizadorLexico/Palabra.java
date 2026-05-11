@@ -33,8 +33,9 @@ public class Palabra extends SimboloLexico {
         return true;
     }
 
-    public static final Palabra yLogico = new Palabra(new char[]{'Y'}, Etiqueta.Y);
-    public static final Palabra oLogico = new Palabra(new char[]{'O'}, Etiqueta.O);
+    // --- INSTANCIAS LIMPIAS ---
+    public static final Palabra yLogico = new Palabra(Etiqueta.TXT_Y, Etiqueta.Y);
+    public static final Palabra oLogico = new Palabra(Etiqueta.TXT_O, Etiqueta.O);
     public static final Palabra compararIgualdad = new Palabra(new char[]{'=','='}, Etiqueta.IGUALDAD);
     public static final Palabra compararDiferencia = new Palabra(new char[]{'!','='}, Etiqueta.DIFERENTE);
     public static final Palabra compararMenorIgual = new Palabra(new char[]{'<','='}, Etiqueta.MENOR_IGUAL);

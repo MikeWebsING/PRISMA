@@ -178,7 +178,7 @@ public class Semantico {
     }
 
     public void realizarDeclaracion(char[] nombre, int etiquetaTipo, int linea, int columna) {
-        char[] nombreTipo = Etiqueta.obtenerNombre(etiquetaTipo);
+        char[] nombreTipo = Etiqueta.obtener(etiquetaTipo);
         if (esIgual(nombreTipo, new char[]{'V','A','C','I','O'})) {
             registrarError(linea, columna, new char[]{'E','1','4'}, new char[]{'N','o',' ','s','e',' ','p','e','r','m','i','t','e','n',' ','v','a','r','i','a','b','l','e','s',' ','d','e',' ','t','i','p','o',' ','V','A','C','I','O','.'});
             return;

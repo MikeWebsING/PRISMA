@@ -53,7 +53,7 @@ public class AnalizadorSintactico {
         if (preanalisis.etiqueta == etiquetaEsperada) {
             avanzar();
         } else {
-            char[] nombreEsp = Etiqueta.obtenerNombre(etiquetaEsperada);
+            char[] nombreEsp = Etiqueta.obtener(etiquetaEsperada);
             char[] lexema;
             if (preanalisis instanceof Palabra) {
                 lexema = ((Palabra) preanalisis).getLexema();
@@ -100,7 +100,7 @@ public class AnalizadorSintactico {
             int colF = preanalisis.columna;
             emparejar(Etiqueta.FUNCION);
             int etiquetaTipoRetorno = preanalisis.etiqueta;
-            char[] tipoRetorno = Etiqueta.obtenerNombre(etiquetaTipoRetorno);
+            char[] tipoRetorno = Etiqueta.obtener(etiquetaTipoRetorno);
             procesarTipo();
             char[] nombreFuncion = ((Palabra) preanalisis).getLexema();
             emparejar(Etiqueta.IDENTIFICADOR);
@@ -123,7 +123,7 @@ public class AnalizadorSintactico {
 
     private char[][] procesarParametros() throws IOException {
         int tipoParametro = preanalisis.etiqueta;
-        char[] nombreTipo = Etiqueta.obtenerNombre(tipoParametro);
+        char[] nombreTipo = Etiqueta.obtener(tipoParametro);
         procesarTipo();
         char[] idParametro = ((Palabra) preanalisis).getLexema();
         int linP = preanalisis.linea;
@@ -367,7 +367,7 @@ public class AnalizadorSintactico {
         while (preanalisis.etiqueta == '<' || preanalisis.etiqueta == '>' ||
                 preanalisis.etiqueta == Etiqueta.MAYOR_IGUAL || preanalisis.etiqueta == Etiqueta.MENOR_IGUAL ||
                 preanalisis.etiqueta == Etiqueta.IGUALDAD || preanalisis.etiqueta == Etiqueta.DIFERENTE) {
-            char[] op = Etiqueta.obtenerNombre(preanalisis.etiqueta);
+            char[] op = Etiqueta.obtener(preanalisis.etiqueta);
             semantico.validarOperando(tipo, new char[]{'A','R','I','T','M','E','T','I','C','O'}, lin, col, op);
             avanzar();
             char[] tipo2 = expresionAritmetica();

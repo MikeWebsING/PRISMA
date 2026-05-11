@@ -4,21 +4,9 @@ IMPRIME Macro Mensaje
     int 21h
 EndM
 
-LEER Macro Entrada
-  mov Ah, 0Ah
-  mov Dx, offset Entrada
-  int 21h
-EndM
-
-CLS Macro
-    Mov Ah, 0Fh
-    int 10h
-    Mov Ah, 0h
-    int 10h
-EndM
-
 .MODEL SMALL
 .CODE
+
 CargarVars proc
   mov al, [si+2]
   mov bl, [di+2]
@@ -44,6 +32,15 @@ MostrarNum proc
   push bx
   push cx
   push dx
+  cmp ax, 0
+  jge EsPositivo
+  push ax
+  mov ah, 02h
+  mov dl, '-'
+  int 21h
+  pop ax
+  neg ax
+EsPositivo:
   mov cx, 0
   mov bx, 10
 DivLoop:
@@ -66,30 +63,10 @@ PrintLoop:
   ret
 MostrarNum endp
 
-LeerNum proc
-  mov si, dx
-  mov cl, [si+1]
-  mov ch, 0
-  add si, 2
-  mov ax, 0
-  mov bx, 10
-ParseBucle:
-  mov dl, [si]
-  sub dl, 30h
-  mov dh, 0
-  push dx
-  mul bx
-  pop dx
-  add ax, dx
-  inc si
-  loop ParseBucle
-  ret
-LeerNum endp
-
 ImprimirVariable proc
   mov si, dx
   mov al, [si+2]
-  mov ah, 0
+  cbw
   call MostrarNum
   call SaltarLinea
   ret
@@ -98,84 +75,243 @@ ImprimirVariable endp
 Inicio:
   mov Ax, @Data
   mov Ds, Ax
-  CLS
 
-  IMPRIME _cadena0
-  mov dx, offset a
-  LEER a
-  call LeerNum
-  mov si, offset a
-  mov [si+2], al
-  call SaltarLinea
-  IMPRIME _cadena1
-  mov dx, offset b
-  LEER b
-  call LeerNum
-  mov si, offset b
-  mov [si+2], al
-  call SaltarLinea
-  mov si, offset a
-  mov di, offset b
-  call CargarVars
+  mov si, offset objetivo+2
+  mov byte ptr [si], 20
+  mov si, offset posicion+2
+  mov byte ptr [si], -1
+  mov si, offset nActual+2
+  mov byte ptr [si], 0
+  mov si, offset n1+2
+  mov byte ptr [si], 3
+  mov si, offset n2+2
+  mov byte ptr [si], -2
+  mov si, offset n3+2
+  mov byte ptr [si], 8
+  mov si, offset n4+2
+  mov byte ptr [si], 15
+  mov si, offset n5+2
+  mov byte ptr [si], 20
+  mov si, offset n6+2
+  mov byte ptr [si], 7
+  mov si, offset contador+2
+  mov byte ptr [si], 0
+  mov si, offset aux+2
+  mov byte ptr [si], 0
+  mov si, offset resultadoBusqueda+2
+  mov byte ptr [si], -1
+  mov si, offset contador+2
+  mov byte ptr [si], 0
+Etiqueta03:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 6
+  cmp al, bl
+  jge Etiqueta04
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 0
+  cmp al, bl
+  jne Etiqueta05
+  mov si, offset nActual+2
+  mov di, offset n1
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta05:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 1
+  cmp al, bl
+  jne Etiqueta06
+  mov si, offset nActual+2
+  mov di, offset n2
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta06:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 2
+  cmp al, bl
+  jne Etiqueta07
+  mov si, offset nActual+2
+  mov di, offset n3
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta07:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 3
+  cmp al, bl
+  jne Etiqueta08
+  mov si, offset nActual+2
+  mov di, offset n4
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta08:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 4
+  cmp al, bl
+  jne Etiqueta09
+  mov si, offset nActual+2
+  mov di, offset n5
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta09:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 5
+  cmp al, bl
+  jne Etiqueta10
+  mov si, offset nActual+2
+  mov di, offset n6
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta10:
+  call procesarNumero
+  mov si, offset resultadoBusqueda
+  call Guardar
+  mov si, offset resultadoBusqueda
+  mov al, [si+2]
+  mov bl, -1
+  cmp al, bl
+  je Etiqueta11
+  mov si, offset posicion+2
+  mov di, offset resultadoBusqueda
+  mov al, byte ptr [di+2]
+  mov byte ptr [si], al
+Etiqueta11:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 1
   add al, bl
-  mov si, offset c
+  mov si, offset contador
   call Guardar
-  IMPRIME _cadena2
-  mov dx, offset c
+  jmp Etiqueta03
+Etiqueta04:
+  IMPRIME Msg0
+  mov si, offset contador+2
+  mov byte ptr [si], 0
+Etiqueta12:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 6
+  cmp al, bl
+  jge Etiqueta13
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 0
+  cmp al, bl
+  jne Etiqueta14
+  mov dx, offset n1
   call ImprimirVariable
-  mov si, offset a
-  mov di, offset b
-  call CargarVars
-  sub al, bl
-  mov si, offset c
+Etiqueta14:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 1
+  cmp al, bl
+  jne Etiqueta15
+  mov dx, offset n2
+  call ImprimirVariable
+Etiqueta15:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 2
+  cmp al, bl
+  jne Etiqueta16
+  mov dx, offset n3
+  call ImprimirVariable
+Etiqueta16:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 3
+  cmp al, bl
+  jne Etiqueta17
+  mov dx, offset n4
+  call ImprimirVariable
+Etiqueta17:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 4
+  cmp al, bl
+  jne Etiqueta18
+  mov dx, offset n5
+  call ImprimirVariable
+Etiqueta18:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 5
+  cmp al, bl
+  jne Etiqueta19
+  mov dx, offset n6
+  call ImprimirVariable
+Etiqueta19:
+  mov si, offset contador
+  mov al, [si+2]
+  mov bl, 1
+  add al, bl
+  mov si, offset contador
   call Guardar
-  IMPRIME _cadena3
-  mov dx, offset c
+  jmp Etiqueta12
+Etiqueta13:
+  IMPRIME Msg1
+  mov dx, offset posicion
   call ImprimirVariable
-  mov si, offset a
-  mov di, offset b
-  call CargarVars
-  mul bl
-  mov si, offset c
-  call Guardar
-  IMPRIME _cadena4
-  mov dx, offset c
-  call ImprimirVariable
-  mov si, offset a
-  mov di, offset b
-  call CargarVars
-  mov ah, 0
-  div bl
-  mov si, offset c
-  call Guardar
-  IMPRIME _cadena5
-  mov dx, offset c
-  call ImprimirVariable
-  mov si, offset a
-  mov di, offset b
-  call CargarVars
-  mov ah, 0
-  div bl
+
+  mov ax, 4C00h
+  int 21h
+
+
+procesarNumero proc
+  mov si, offset nActual
+  mov al, [si+2]
+  mov bl, 0
+  cmp al, bl
+  jle Etiqueta00
+  mov si, offset nActual
+  mov al, [si+2]
+  mov bl, 2
+  cbw
+  idiv bl
   mov al, ah
-  mov si, offset r
+  mov si, offset aux
   call Guardar
-  IMPRIME _cadena6
-  mov dx, offset r
-  call ImprimirVariable
-mov Ax, 4C00h
-int 21h
+  mov si, offset aux
+  mov al, [si+2]
+  mov bl, 0
+  cmp al, bl
+  jne Etiqueta01
+  mov si, offset nActual
+  mov di, offset objetivo
+  call CargarVars
+  cmp al, bl
+  jne Etiqueta02
+  mov si, offset contador
+  mov al, [si+2]
+  ret
+Etiqueta02:
+Etiqueta01:
+Etiqueta00:
+  mov al, -1
+  ret
+  ret
+procesarNumero endp
 
 .DATA
-a db 10, ?, 10 dup (24h)
-b db 10, ?, 10 dup (24h)
-c db 10, ?, 10 dup (24h)
-r db 10, ?, 10 dup (24h)
-_cadena0 db "VALOR DE A: ", '$'
-_cadena1 db "VALOR DE B: ", '$'
-_cadena2 db "LA SUMA ES: ", '$'
-_cadena3 db "LA RESTA ES: ", '$'
-_cadena4 db "LA MULTIPLICACION ES: ", '$'
-_cadena5 db "LA DIVISION ES: ", '$'
-_cadena6 db "EL RESIDUO ES: ", '$'
+  objetivo db 10, 0, 10 dup('$')
+  posicion db 10, 0, 10 dup('$')
+  nActual db 10, 0, 10 dup('$')
+  n1 db 10, 0, 10 dup('$')
+  n2 db 10, 0, 10 dup('$')
+  n3 db 10, 0, 10 dup('$')
+  n4 db 10, 0, 10 dup('$')
+  n5 db 10, 0, 10 dup('$')
+  n6 db 10, 0, 10 dup('$')
+  contador db 10, 0, 10 dup('$')
+  aux db 10, 0, 10 dup('$')
+  resultadoBusqueda db 10, 0, 10 dup('$')
+  Msg0 db "Listado de numeros:", 13, 10, '$'
+  Msg1 db "Posicion encontrada:", 13, 10, '$'
+
 .STACK
 END Inicio

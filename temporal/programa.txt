@@ -6,9 +6,9 @@ FIN-VARIABLES
 PRINCIPAL
     a = 5
     b = 3
-    SI (a > b)
+    SI (a > b) ENTONCES
         IMPRIME("A ES MAYOR")
-        SI (b == 3)
+        SI (b == 3) ENTONCES
             IMPRIME("B ES TRES")
         FIN-SI
     FIN-SI
