@@ -1,12 +1,11 @@
 package AnalizadorSintactico;
 
 import AnalizadorLexico.*;
-import AnalizadorSemantico.Semantico;
-import AnalizadorSemantico.SimboloS;
+import AnalizadorSemantico.TablaSimbolos;
 import java.io.*;
 
 public class AnalizadorSintactico {
-    private Semantico semantico;
+    private TablaSimbolos semantico;
     private AnalizadorLexico lexico;
     private SimboloLexico preanalisis;
     private char[] tipoFuncionGlobal = {'V','A','C','I','O'};
@@ -18,7 +17,7 @@ public class AnalizadorSintactico {
 
     public AnalizadorSintactico(AnalizadorLexico analizadorLexico) throws IOException {
         lexico = analizadorLexico;
-        semantico = new Semantico();
+        semantico = new TablaSimbolos();
         avanzar();
     }
 
@@ -71,7 +70,7 @@ public class AnalizadorSintactico {
         procesoPrograma();
     }
 
-    public Semantico obtenerSemantico() {
+    public TablaSimbolos obtenerSemantico() {
         return semantico;
     }
 
@@ -442,11 +441,11 @@ public class AnalizadorSintactico {
                 emparejar('(');
                 char[][] firmaArg = procesarArgumentos();
                 emparejar(')');
-                SimboloS sim = semantico.buscarSimbolo(nombreId);
+                TablaSimbolos.SimboloS sim = semantico.buscarSimbolo(nombreId);
                 semantico.validarLlamada(nombreId, firmaArg, linId, colId);
                 return (sim != null) ? sim.tipo : DESCONOCIDO;
             } else {
-                SimboloS sim = semantico.buscarSimbolo(nombreId);
+                TablaSimbolos.SimboloS sim = semantico.buscarSimbolo(nombreId);
                 semantico.validarUsoVariable(nombreId, linId, colId);
                 return (sim != null) ? sim.tipo : DESCONOCIDO;
             }

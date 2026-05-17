@@ -174,7 +174,7 @@ IMPRIME '(' <expr> ')'
 |Identificador|[a-z_][a-zA-Z0-9_]*|COMPUESTA|280|
 |Número Entero|[0-9]+|COMPUESTA|281|
 |Número Decimal|[0-9]+\.[0-9]+|COMPUESTA|282|
-|Cadena de Texto|"[^"]*"|COMPUESTA|283|
+|Cadena de Texto|"[^"]*"|COMPUESTA|283|3
 |Literal Verdadero|V|SIMPLE|284|
 |Literal Falso|F|SIMPLE|285|
 |**Manejo de Errores**||||

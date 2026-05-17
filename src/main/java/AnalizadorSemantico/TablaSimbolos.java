@@ -2,8 +2,30 @@ package AnalizadorSemantico;
 
 import AnalizadorLexico.Etiqueta;
 
-public class Semantico {
-    private SimboloS[] tablaSimbolos;
+public class TablaSimbolos {
+    
+    public static class SimboloS {
+        public char[] nombre;
+        public char[] tipo;
+        public boolean inicializado;
+        public boolean esFuncion;
+        public char[][] firma;
+        public int linea;
+        public int columna;
+        public Object valor;
+
+        public SimboloS(char[] nombre, char[] tipo, boolean inicializado, int linea, int columna) {
+            this.nombre = nombre;
+            this.tipo = tipo;
+            this.inicializado = inicializado;
+            this.linea = linea;
+            this.columna = columna;
+            this.esFuncion = false;
+            this.firma = new char[0][0];
+        }
+    }
+
+    private SimboloS[] tabla;
     private int contadorSimbolos = 0;
     
     private char[][] listaErrores;
@@ -22,8 +44,8 @@ public class Semantico {
         {'I','M','P','R','I','M','E'}, {'L','E','E','R'}, {'Y'}, {'O'}, {'N','O'}, {'V'}, {'F'}
     };
 
-    public Semantico() {
-        tablaSimbolos = new SimboloS[1000];
+    public TablaSimbolos() {
+        tabla = new SimboloS[1000];
         listaErrores = new char[200][];
     }
 
@@ -42,8 +64,8 @@ public class Semantico {
         if (buscarSimbolo(nombre) != null) {
             registrarError(linea, columna, new char[]{'E','2'}, concatenar(new char[]{'E','l',' ','i','d','e','n','t','i','f','i','c','a','d','o','r',' ','\''}, nombre, new char[]{'\''}));
         } else {
-            if (contadorSimbolos < tablaSimbolos.length) {
-                tablaSimbolos[contadorSimbolos++] = new SimboloS(nombre, tipo, inicializado, linea, columna);
+            if (contadorSimbolos < tabla.length) {
+                tabla[contadorSimbolos++] = new SimboloS(nombre, tipo, inicializado, linea, columna);
             }
         }
     }
@@ -58,19 +80,19 @@ public class Semantico {
         if (buscarSimbolo(nombre) != null) {
             registrarError(linea, columna, new char[]{'E','1','2'}, concatenar(new char[]{'L','a',' ','f','u','n','c','i','o','n',' ','\''}, nombre, new char[]{'\''}));
         } else {
-            if (contadorSimbolos < tablaSimbolos.length) {
+            if (contadorSimbolos < tabla.length) {
                 SimboloS s = new SimboloS(nombre, tipoRetorno, true, linea, columna);
                 s.esFuncion = true;
                 s.firma = firma;
-                tablaSimbolos[contadorSimbolos++] = s;
+                tabla[contadorSimbolos++] = s;
             }
         }
     }
 
     public SimboloS buscarSimbolo(char[] nombre) {
         for (int i = 0; i < contadorSimbolos; i++) {
-            if (esIgual(tablaSimbolos[i].nombre, nombre)) {
-                return tablaSimbolos[i];
+            if (esIgual(tabla[i].nombre, nombre)) {
+                return tabla[i];
             }
         }
         return null;
@@ -136,7 +158,7 @@ public class Semantico {
     public void verificarCompatibilidadBinaria(char[] t1, char[] t2, int lin, int col, char[] op) {
         if (esIgual(t1, new char[]{'D','E','S','C','O','N','O','C','I','D','O'}) || esIgual(t2, new char[]{'D','E','S','C','O','N','O','C','I','D','O'})) return;
         if (!esIgual(t1, t2)) {
-            registrarError(lin, col, new char[]{'E','3'}, concatenar(new char[]{'T','i','p','o','s',' ','i','n','c','o','m','p','a','t','i','b','l','e','s',' ','p','a','r','a',' ','\''}, op, new char[]{'\''}));
+            registrarError(lin, col, new char[]{'E','3'}, concatenar(new char[]{'T','i','p','o','s',' ','i','n','c','m','p','a','t','i','b','l','e','s',' ','p','a','r','a',' ','\''}, op, new char[]{'\''}));
         }
     }
 

@@ -1,6 +1,7 @@
 package AnalizadorLexico;
 
 import java.io.*;
+import java.util.regex.Pattern;
 
 public class AnalizadorLexico {
     private int linea = 1;
@@ -314,17 +315,8 @@ public class AnalizadorLexico {
 
     private boolean esIdentificadorValido(char[] lexema) {
         if (lexema.length == 0) return false;
-        char inicio = lexema[0];
-        if (!((inicio >= 'a' && inicio <= 'z') || inicio == '_')) {
-            return false;
-        }
-        for (int i = 1; i < lexema.length; i++) {
-            char c = lexema[i];
-            if (!(esLetraONumero(c) || c == '_')) {
-                return false;
-            }
-        }
-        return true;
+        String s = new String(lexema);
+        return Pattern.matches(ExpresionesRegulares.ID, s);
     }
 
     private boolean esCaracterValido(char caracter) {
